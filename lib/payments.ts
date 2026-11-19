@@ -41,19 +41,42 @@ export function canPay(b: Booking) {
 async function call<T>(body: Record<string, unknown>): Promise<T> {
   if (!supabase) throw new Error('Pembayaran hanya tersedia saat tersambung ke server.');
   const { data, error } = await supabase.functions.invoke('payment', { body });
-  if (error) {
-    // Ambil pesan error dari fungsi bila ada
-    const ctx = (error as { context?: Response }).context;
-    let msg = error.message;
-    try {
-      const j = ctx ? await ctx.json() : null;
-      if (j?.error) msg = j.error;
-    } catch {}
-    if (/not found|404/i.test(msg)) msg = 'Fungsi pembayaran belum dipasang di Supabase (Edge Function "payment").';
-    throw new Error(msg);
-  }
+  if (error) throw new Error(await explain(error));
   if (data?.error) throw new Error(data.error);
   return data as T;
+}
+
+/** Ubah error Edge Function menjadi pesan yang jelas + petunjuk perbaikan. */
+async function explain(error: Error & { context?: unknown }): Promise<string> {
+  const res = error.context instanceof Response ? error.context : null;
+  if (!res) {
+    // Tidak sampai ke server: fungsi belum ada / nama salah / internet
+    return `Tidak bisa menghubungi fungsi "payment". Pastikan fungsi bernama persis payment sudah di-Deploy di Supabase → Edge Functions, dan internet HP aktif. (${error.message})`;
+  }
+  let detail = '';
+  try {
+    const text = await res.clone().text();
+    try {
+      const j = JSON.parse(text);
+      detail = j.error || j.message || j.msg || j.code || text;
+    } catch {
+      detail = text;
+    }
+  } catch {}
+  const code = res.status;
+  const hint =
+    code === 404 && !/Pesanan/.test(detail)
+      ? 'Fungsi "payment" belum di-Deploy atau namanya berbeda.'
+      : code === 401
+        ? 'Login ditolak oleh fungsi. Buka Supabase → Edge Functions → payment → Details, matikan "Verify JWT" lalu simpan (fungsi tetap memeriksa login sendiri). Bila masih gagal, keluar lalu masuk lagi di aplikasi.'
+        : code === 500 && /MIDTRANS_SERVER_KEY/.test(detail)
+          ? 'Tambahkan secret MIDTRANS_SERVER_KEY di Supabase → Edge Functions → Secrets.'
+          : code === 502
+            ? 'Midtrans menolak. Pastikan Server Key dari lingkungan Sandbox (diawali SB-Mid-server-) dan tidak ada spasi.'
+            : code === 546 || code === 503
+              ? 'Fungsi error saat berjalan. Lihat Supabase → Edge Functions → payment → Logs.'
+              : '';
+  return [detail || error.message, hint, `(kode ${code})`].filter(Boolean).join('\n\n');
 }
 
 export async function checkPayment(bookingId: string): Promise<PaymentStatus> {

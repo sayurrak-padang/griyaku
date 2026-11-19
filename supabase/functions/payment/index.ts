@@ -1,6 +1,7 @@
 // Supabase Edge Function "payment": membuat & mengecek pembayaran Midtrans untuk pesanan jasa.
 // Secret yang dibutuhkan (Edge Functions → Secrets): MIDTRANS_SERVER_KEY, opsional MIDTRANS_IS_PRODUCTION=true.
-// SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY sudah otomatis tersedia.
+// SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY sudah otomatis tersedia.
+// Boleh mematikan "Verify JWT" untuk fungsi ini: login tetap diperiksa di bawah.
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const SERVER_KEY = Deno.env.get('MIDTRANS_SERVER_KEY') ?? '';
@@ -48,10 +49,9 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get('SUPABASE_URL')!;
   const authHeader = req.headers.get('Authorization') ?? '';
-  const asUser = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-  const { data: auth } = await asUser.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
-  if (!auth?.user) return json({ error: 'Silakan masuk dulu.' }, 401);
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+  const { data: auth } = await admin.auth.getUser(authHeader.replace(/^Bearer\s+/i, ''));
+  if (!auth?.user) return json({ error: 'Sesi login tidak valid. Keluar lalu masuk lagi di aplikasi.' }, 401);
 
   let body: { action?: string; booking_id?: string };
   try {
