@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PropertyCard } from '@/components/PropertyCard';
@@ -11,9 +11,11 @@ import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { CITIES, ListingKind, PROPERTY_TYPES, PropertyType } from '@/data/properties';
 import { formatThousands, parseNumber } from '@/lib/format';
+import { distanceKm, getCurrentLocation, LatLng } from '@/lib/geo';
 
-type Sort = 'terbaru' | 'termurah' | 'termahal' | 'terluas';
+type Sort = 'terdekat' | 'terbaru' | 'termurah' | 'termahal' | 'terluas';
 const SORTS: { key: Sort; label: string }[] = [
+  { key: 'terdekat', label: 'Terdekat dari saya' },
   { key: 'terbaru', label: 'Terbaru' },
   { key: 'termurah', label: 'Harga terendah' },
   { key: 'termahal', label: 'Harga tertinggi' },
@@ -30,10 +32,12 @@ type Filters = {
 };
 const NO_FILTERS: Filters = { city: null, minPrice: '', maxPrice: '', minBed: 0, verified: false, furnished: false };
 
+const RADII = [2, 5, 10, 25, 50, 0]; // 0 = tanpa batas
+
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 export default function Search() {
-  const params = useLocalSearchParams<{ type?: string; mode?: string; city?: string; verified?: string; q?: string; max?: string }>();
+  const params = useLocalSearchParams<{ type?: string; mode?: string; city?: string; verified?: string; q?: string; max?: string; near?: string }>();
   const { allProperties, online, loading, refresh } = useApp();
 
   const [mode, setMode] = useState<ListingKind | 'semua'>('semua');
@@ -45,6 +49,31 @@ export default function Search() {
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
   const [view, setView] = useState<'list' | 'map'>('list');
+  const [near, setNear] = useState<(LatLng & { label?: string }) | null>(null);
+  const [radius, setRadius] = useState(10);
+  const [locating, setLocating] = useState(false);
+
+  const locate = async () => {
+    setLocating(true);
+    try {
+      const here = await getCurrentLocation();
+      setNear(here);
+      setSort('terdekat');
+    } catch (e) {
+      Alert.alert('Lokasi tidak tersedia', e instanceof Error ? e.message : String(e));
+    } finally {
+      setLocating(false);
+    }
+  };
+  const clearNear = () => {
+    setNear(null);
+    if (sort === 'terdekat') setSort('terbaru');
+  };
+
+  useEffect(() => {
+    if (one(params.near) === '1') locate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.near]);
 
   // Terapkan parameter dari Beranda (jenis, kota, mode)
   useEffect(() => {
@@ -65,11 +94,21 @@ export default function Search() {
     if (params.q) setQ(one(params.q) ?? '');
   }, [params.type, params.mode, params.city, params.verified, params.q, params.max]);
 
-  const results = useMemo(() => {
+  const { results, dist } = useMemo(() => {
+    const dist = new Map<string, number>();
+    if (near) {
+      for (const p of allProperties) {
+        if (p.lat !== undefined && p.lng !== undefined) dist.set(p.id, distanceKm(near, { lat: p.lat, lng: p.lng }));
+      }
+    }
     const term = q.trim().toLowerCase();
     const min = parseNumber(filters.minPrice);
     const max = parseNumber(filters.maxPrice);
     const list = allProperties.filter((p) => {
+      if (near) {
+        const d = dist.get(p.id);
+        if (d === undefined || (radius && d > radius)) return false;
+      }
       if (mode !== 'semua' && p.listing !== mode) return false;
       if (type && p.type !== type) return false;
       if (filters.city && p.city !== filters.city) return false;
@@ -85,13 +124,15 @@ export default function Search() {
       return true;
     });
     const area = (x: (typeof list)[number]) => x.buildingArea ?? x.landArea ?? 0;
-    return [...list].sort((a, b) => {
+    const sorted = [...list].sort((a, b) => {
+      if (sort === 'terdekat' && near) return (dist.get(a.id) ?? 1e9) - (dist.get(b.id) ?? 1e9);
       if (sort === 'termurah') return a.price - b.price;
       if (sort === 'termahal') return b.price - a.price;
       if (sort === 'terluas') return area(b) - area(a);
       return b.postedAt.localeCompare(a.postedAt);
     });
-  }, [allProperties, q, mode, type, filters, sort]);
+    return { results: sorted, dist };
+  }, [allProperties, q, mode, type, filters, sort, near, radius]);
 
   const activeCount =
     (filters.city ? 1 : 0) +
@@ -159,6 +200,34 @@ export default function Search() {
             <Chip key={t.key} label={t.label} active={type === t.key} onPress={() => setType(type === t.key ? null : t.key)} />
           ))}
         </ScrollView>
+
+        {near ? (
+          <View style={styles.nearBox}>
+            <View style={styles.nearHead}>
+              <Ionicons name="navigate" size={15} color={C.primary} />
+              <Text style={styles.nearText} numberOfLines={1}>
+                Sekitar {near.label ?? 'lokasi Anda'}
+              </Text>
+              <Pressable onPress={locate} hitSlop={8}>
+                <Ionicons name="refresh" size={16} color={C.primary} />
+              </Pressable>
+              <Pressable onPress={clearNear} hitSlop={8}>
+                <Ionicons name="close-circle" size={18} color={C.muted} />
+              </Pressable>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {RADII.map((r) => (
+                <Chip key={r} label={r ? `≤ ${r} km` : 'Semua jarak'} active={radius === r} onPress={() => setRadius(r)} />
+              ))}
+            </ScrollView>
+          </View>
+        ) : (
+          <Pressable style={styles.nearBtn} onPress={locate} disabled={locating}>
+            {locating ? <ActivityIndicator size="small" color={C.primary} /> : <Ionicons name="navigate-outline" size={16} color={C.primary} />}
+            <Text style={styles.nearBtnText}>{locating ? 'Mencari lokasi Anda...' : 'Gunakan lokasi terkini'}</Text>
+            <Text style={styles.nearHint}>properti terdekat</Text>
+          </Pressable>
+        )}
       </View>
 
       {view === 'map' ? (
@@ -179,11 +248,18 @@ export default function Search() {
         ListHeaderComponent={
           <Text style={styles.count}>
             {results.length} properti ditemukan{filters.city ? ` di ${filters.city}` : ''}
+            {near ? (radius ? ` dalam ${radius} km dari Anda` : ', diurutkan dari yang terdekat') : ''}
           </Text>
         }
-        renderItem={({ item }) => <PropertyCard p={item} />}
+        renderItem={({ item }) => <PropertyCard p={item} distanceKm={dist.get(item.id)} />}
         ListEmptyComponent={
-          <Empty icon="search" title="Belum ada yang cocok" text="Coba ubah kata kunci atau kurangi filter.">
+          <Empty
+            icon="search"
+            title="Belum ada yang cocok"
+            text={near && radius ? `Belum ada properti dalam ${radius} km. Coba perbesar jarak.` : 'Coba ubah kata kunci atau kurangi filter.'}>
+            {near && radius && radius < 50 ? (
+              <Button title="Perbesar jarak" onPress={() => setRadius(RADII[RADII.indexOf(radius) + 1])} style={{ marginBottom: 8 }} />
+            ) : null}
             <Button
               title="Reset pencarian"
               variant="outline"
@@ -192,6 +268,7 @@ export default function Search() {
                 setType(null);
                 setMode('semua');
                 setFilters(NO_FILTERS);
+                clearNear();
               }}
             />
           </Empty>
@@ -209,8 +286,12 @@ export default function Search() {
                 key={s.key}
                 style={styles.option}
                 onPress={() => {
-                  setSort(s.key);
                   setShowSort(false);
+                  if (s.key === 'terdekat' && !near) {
+                    locate();
+                    return;
+                  }
+                  setSort(s.key);
                 }}>
                 <Text style={styles.optionText}>{s.label}</Text>
                 <Ionicons name={sort === s.key ? 'radio-button-on' : 'radio-button-off'} size={20} color={C.primary} />
@@ -302,6 +383,23 @@ export default function Search() {
 }
 
 const styles = StyleSheet.create({
+  nearBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: C.primarySoft,
+    alignSelf: 'flex-start',
+  },
+  nearBtnText: { fontSize: 13.5, fontWeight: '700', color: C.primary },
+  nearHint: { fontSize: 12, color: C.muted },
+  nearBox: { marginHorizontal: 16, marginTop: 10, gap: 8 },
+  nearHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  nearText: { flex: 1, fontSize: 13.5, fontWeight: '700', color: C.text },
   top: { backgroundColor: 'rgba(255,255,255,0.45)', paddingTop: 8, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderColor: C.border },
   searchBox: {
     flexDirection: 'row',

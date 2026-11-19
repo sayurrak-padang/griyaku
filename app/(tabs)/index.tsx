@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,10 +31,10 @@ export default function Home() {
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: TAB_BAR_SPACE }}>
       <View style={[styles.hero, { paddingTop: insets.top + 12 }]}>
         <View style={styles.brandRow}>
-          <View style={styles.logo}>
-            <Ionicons name="home" size={18} color="#fff" />
-          </View>
-          <Text style={styles.brand}>Griyaku</Text>
+          <Image source={require('@/assets/images/logo-mark.png')} style={styles.logoMark} contentFit="contain" />
+          <Text style={styles.brand}>
+            griya<Text style={{ color: C.brandOrange }}>ku</Text>
+          </Text>
           <View style={{ flex: 1 }} />
           <View style={styles.actions}>
             <HeaderIcon icon="chatbubbles-outline" badge={unreadChats} onPress={() => router.push('/chat')} />
@@ -45,7 +46,17 @@ export default function Home() {
         <Text style={styles.heroTitle}>Temukan tempat tinggal yang pas untukmu</Text>
         <Pressable style={styles.search} onPress={() => router.push('/cari')}>
           <Ionicons name="search" size={20} color={C.muted} />
-          <Text style={styles.searchText}>Cari lokasi, nama perumahan, kost...</Text>
+          <Text style={[styles.searchText, { flex: 1 }]} numberOfLines={1}>
+            Cari lokasi, nama perumahan, kost...
+          </Text>
+          <Pressable
+            onPress={() => router.push({ pathname: '/cari', params: { near: '1' } })}
+            hitSlop={8}
+            style={styles.nearIcon}
+            accessibilityLabel="Cari properti di sekitar saya">
+            <Ionicons name="navigate" size={16} color={C.primary} />
+            <Text style={styles.nearIconText}>Dekat saya</Text>
+          </Pressable>
         </Pressable>
       </View>
 
@@ -165,6 +176,8 @@ function HeaderIcon({ icon, badge, onPress }: { icon: IconName; badge?: number; 
 }
 
 const styles = StyleSheet.create({
+  nearIcon: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.primarySoft, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  nearIconText: { fontSize: 12, fontWeight: '700', color: C.primary },
   actions: { flexDirection: 'row', gap: 8 },
   headerIcon: {
     width: 40,
@@ -194,7 +207,8 @@ const styles = StyleSheet.create({
   hero: { paddingHorizontal: 16, paddingBottom: 8 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { width: 30, height: 30, borderRadius: 9, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
-  brand: { color: C.text, fontSize: 20, fontWeight: '800', letterSpacing: 0.3 },
+  brand: { color: C.brandDark, fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+  logoMark: { width: 28, height: 35 },
   greet: { color: C.muted, marginTop: 18, fontSize: 14 },
   heroTitle: { color: C.text, fontSize: 22, fontWeight: '800', marginTop: 4, lineHeight: 28 },
   search: {

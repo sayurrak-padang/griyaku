@@ -2,8 +2,11 @@ export const C = {
   primary: '#0E8F7E',
   primaryDark: '#0A6E61',
   primarySoft: 'rgba(14,143,126,0.12)',
-  accent: '#F4A52A',
-  accentSoft: 'rgba(244,165,42,0.16)',
+  accent: '#F57A1F',
+  accentSoft: 'rgba(245,122,31,0.14)',
+  /** Warna logo */
+  brandOrange: '#F57A1F',
+  brandDark: '#123F3D',
   danger: '#E5484D',
   dangerSoft: 'rgba(229,72,77,0.12)',
   info: '#3B6FD9',

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatDistance } from '@/lib/geo';
 
 import { Photo } from '@/components/Photo';
 import { C, R } from '@/constants/theme';
@@ -40,7 +41,7 @@ function FavButton({ id }: { id: string }) {
   );
 }
 
-export function PropertyCard({ p }: { p: Property }) {
+export function PropertyCard({ p, distanceKm }: { p: Property; distanceKm?: number }) {
   const kpr = p.listing === 'jual' && p.type !== 'tanah' && p.type !== 'gudang';
   return (
     <Pressable style={s.card} onPress={() => router.push(`/property/${p.id}`)}>
@@ -85,6 +86,7 @@ export function PropertyCard({ p }: { p: Property }) {
           <Text style={s.locText} numberOfLines={1}>
             {p.district}, {p.city}
           </Text>
+          {distanceKm !== undefined ? <Text style={s.dist}>{formatDistance(distanceKm)}</Text> : null}
         </View>
         <Specs p={p} />
       </View>
@@ -117,6 +119,7 @@ export function PropertyMiniCard({ p }: { p: Property }) {
 }
 
 const s = StyleSheet.create({
+  dist: { fontSize: 12, fontWeight: '700', color: C.primary, marginLeft: 'auto' },
   card: {
     backgroundColor: C.card,
     borderRadius: R.lg,
