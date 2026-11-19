@@ -113,3 +113,12 @@ create policy "foto: unggah ke folder sendiri" on storage.objects
 create policy "foto: hapus milik sendiri" on storage.objects
   for delete to authenticated
   using (bucket_id = 'property-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ============ IZIN TABEL ============
+-- Proyek Supabase baru tidak otomatis memberi izin tabel ke anon/authenticated.
+grant usage on schema public to anon, authenticated;
+grant select on public.properties to anon;
+grant select, insert, update, delete on public.properties to authenticated;
+grant select, insert, update on public.profiles to authenticated;
+grant select, insert, delete on public.favorites to authenticated;
+grant select, insert on public.bookings to authenticated;

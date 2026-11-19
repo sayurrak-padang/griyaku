@@ -15,17 +15,18 @@ export const TAB_ICONS: Record<string, [Icon, Icon]> = {
   akun: ['person-circle-outline', 'person-circle'],
 };
 
+/** Sesuai BottomTabBarProps dari expo-router (emitter + navigateToTab, bukan navigation) */
 type Props = {
-  state: { index: number; routes: { key: string; name: string; params?: object }[] };
+  state: { index: number; routes: { key: string; name: string }[] };
   descriptors: Record<string, { options: { title?: string } }>;
-  navigation: {
+  emitter: {
     emit: (e: { type: 'tabPress' | 'tabLongPress'; target: string; canPreventDefault?: boolean }) => { defaultPrevented?: boolean };
-    navigate: (name: string, params?: object) => void;
   };
+  navigateToTab: (routeKey: string) => void;
 };
 
 /** Tab bar melayang bergaya liquid glass. */
-export function GlassTabBar({ state, descriptors, navigation }: Props) {
+export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(insets.bottom, 12) }]}>
@@ -36,8 +37,8 @@ export function GlassTabBar({ state, descriptors, navigation }: Props) {
           const [off, on] = TAB_ICONS[route.name] ?? ['ellipse-outline', 'ellipse'];
           const color = focused ? C.primary : '#3C4D50';
           const onPress = () => {
-            const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !e.defaultPrevented) navigation.navigate(route.name, route.params);
+            const e = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !e?.defaultPrevented) navigateToTab(route.key);
           };
           return (
             <Pressable
@@ -46,7 +47,7 @@ export function GlassTabBar({ state, descriptors, navigation }: Props) {
               accessibilityState={{ selected: focused }}
               accessibilityLabel={label}
               onPress={onPress}
-              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+              onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
               style={[styles.item, focused && styles.itemOn]}>
               <Ionicons name={focused ? on : off} size={21} color={color} />
               <Text style={[styles.label, { color }, focused && { fontWeight: '800' }]} numberOfLines={1}>

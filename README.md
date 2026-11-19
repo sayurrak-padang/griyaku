@@ -31,7 +31,8 @@ Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan s
 1. Buat proyek gratis di https://supabase.com/dashboard (region Singapore).
 2. Buka **SQL Editor → New query**, tempel isi `supabase/schema.sql`, lalu **Run**.
 3. Buka **Authentication → Sign In / Providers → Email**, matikan **Confirm email**, lalu **Save**. (Tanpa SMTP sendiri, email Supabase sangat dibatasi; dengan opsi ini pendaftaran tidak butuh email.)
-4. Untuk **chat & notifikasi**: buka lagi **SQL Editor → New query**, tempel isi `supabase/chat.sql`, lalu **Run**.
+4. Jika muncul error `permission denied for table` (kode 42501), jalankan juga `supabase/grants.sql`.
+4b. Untuk **chat & notifikasi**: buka lagi **SQL Editor → New query**, tempel isi `supabase/chat.sql`, lalu **Run**.
 5. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
 6. Jalankan ulang `npx expo start`.
 

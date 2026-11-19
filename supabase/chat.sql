@@ -148,3 +148,9 @@ begin
   begin alter publication supabase_realtime add table public.conversations; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.notifications; exception when duplicate_object then null; end;
 end $$;
+
+-- ============ IZIN TABEL ============
+grant select, insert on public.conversations to authenticated;
+grant select, insert, update on public.messages to authenticated;
+grant select, update, delete on public.notifications to authenticated;
+grant execute on function public.is_participant(uuid) to authenticated;
