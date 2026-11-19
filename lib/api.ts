@@ -218,3 +218,28 @@ export async function verifyEmailCode(email: string, token: string) {
   if (error) throw error;
   return data.user;
 }
+
+// ===== Login dengan email + kata sandi (tidak butuh SMTP) =====
+export async function signUpWithPassword(email: string, password: string) {
+  const { data, error } = await need().auth.signUp({ email, password });
+  if (error) throw error;
+  return data; // data.session null berarti "Confirm email" masih aktif di dashboard
+}
+
+export async function signInWithPassword(email: string, password: string) {
+  const { data, error } = await need().auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data.user;
+}
+
+/** Terjemahkan pesan error Supabase yang umum. */
+export function authErrorText(e: unknown): string {
+  const m = e instanceof Error ? e.message : String(e);
+  if (/invalid login credentials/i.test(m)) return 'Email atau kata sandi salah.';
+  if (/already registered|already exists/i.test(m)) return 'Email ini sudah terdaftar. Silakan pilih "Masuk".';
+  if (/password should be at least/i.test(m)) return 'Kata sandi minimal 6 karakter.';
+  if (/email not confirmed/i.test(m)) return 'Email belum dikonfirmasi. Matikan "Confirm email" di dashboard Supabase.';
+  if (/rate limit/i.test(m)) return 'Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.';
+  if (/network|fetch/i.test(m)) return 'Tidak ada koneksi internet.';
+  return m;
+}

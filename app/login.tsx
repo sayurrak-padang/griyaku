@@ -32,103 +32,89 @@ function Title({ title, text }: { title: string; text: string }) {
   );
 }
 
-/** Login sungguhan: email → kode 6 digit → lengkapi profil */
+/** Login sungguhan: email + kata sandi. Daftar sekaligus mengisi nama & WhatsApp. */
 function EmailLogin() {
   const { saveProfile } = useApp();
-  const [step, setStep] = useState<'email' | 'code' | 'profile'>('email');
+  const [mode, setMode] = useState<'masuk' | 'daftar'>('masuk');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const run = async (fn: () => Promise<void>) => {
+  const emailOk = /^\S+@\S+\.\S+$/.test(email.trim());
+  const valid =
+    emailOk &&
+    password.length >= 6 &&
+    (mode === 'masuk' || (name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 9));
+
+  const submit = async () => {
     setBusy(true);
     try {
-      await fn();
-    } catch (e) {
-      Alert.alert('Gagal', e instanceof Error ? e.message : 'Terjadi kesalahan, coba lagi.');
+      const e = email.trim().toLowerCase();
+      if (mode === 'masuk') {
+        await api.signInWithPassword(e, password);
+      } else {
+        const res = await api.signUpWithPassword(e, password);
+        if (!res.session) {
+          Alert.alert(
+            'Konfirmasi email aktif',
+            'Akun dibuat, tetapi Supabase meminta konfirmasi email. Matikan "Confirm email" di Authentication → Sign In / Providers → Email, lalu masuk lagi.'
+          );
+          return;
+        }
+        await saveProfile(name.trim(), toIntl(phone));
+      }
+      router.back();
+    } catch (err) {
+      Alert.alert('Gagal', api.authErrorText(err));
     } finally {
       setBusy(false);
     }
   };
 
-  const emailOk = /^\S+@\S+\.\S+$/.test(email.trim());
-
-  if (step === 'email') {
-    return (
-      <>
-        <Title title="Masuk ke Griyaku" text="Masukkan email Anda. Kami akan mengirim kode 6 digit untuk masuk, tanpa kata sandi." />
-        <Field
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="nama@email.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-        />
-        <Button
-          title={busy ? 'Mengirim...' : 'Kirim kode'}
-          disabled={!emailOk || busy}
-          onPress={() =>
-            run(async () => {
-              await api.sendEmailCode(email.trim().toLowerCase());
-              setStep('code');
-            })
-          }
-        />
-      </>
-    );
-  }
-
-  if (step === 'code') {
-    return (
-      <>
-        <Title title="Masukkan kode" text={`Kode sudah dikirim ke ${email.trim()}. Cek juga folder Spam.`} />
-        <Field
-          label="Kode verifikasi"
-          value={code}
-          onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 8))}
-          placeholder="123456"
-          keyboardType="number-pad"
-          autoComplete="one-time-code"
-        />
-        <Button
-          title={busy ? 'Memeriksa...' : 'Verifikasi'}
-          disabled={code.length < 6 || busy}
-          onPress={() =>
-            run(async () => {
-              const user = await api.verifyEmailCode(email.trim().toLowerCase(), code);
-              const prof = user ? await api.fetchProfile(user.id) : null;
-              if (prof?.name) router.back();
-              else setStep('profile');
-            })
-          }
-        />
-        <Pressable onPress={() => setStep('email')} style={{ marginTop: 16, alignItems: 'center' }}>
-          <Text style={{ color: C.primary, fontWeight: '700' }}>Ganti email / kirim ulang</Text>
-        </Pressable>
-      </>
-    );
-  }
-
   return (
     <>
-      <Title title="Lengkapi profil" text="Nama dan nomor WhatsApp dipakai untuk iklan dan pesanan jasa Anda." />
-      <Field label="Nama lengkap" value={name} onChangeText={setName} placeholder="Nama Anda" autoCapitalize="words" />
-      <Field label="Nomor WhatsApp" value={phone} onChangeText={setPhone} placeholder="08xxxxxxxxxx" keyboardType="phone-pad" />
-      {busy ? <ActivityIndicator color={C.primary} /> : null}
-      <Button
-        title="Simpan"
-        disabled={name.trim().length < 2 || phone.replace(/\D/g, '').length < 9 || busy}
-        onPress={() =>
-          run(async () => {
-            await saveProfile(name.trim(), toIntl(phone));
-            router.back();
-          })
+      <Title
+        title={mode === 'masuk' ? 'Masuk ke Griyaku' : 'Buat akun Griyaku'}
+        text={
+          mode === 'masuk'
+            ? 'Masuk untuk memasang iklan, menyimpan favorit, dan memesan jasa.'
+            : 'Nama dan nomor WhatsApp dipakai untuk iklan dan pesanan jasa Anda.'
         }
       />
+      {mode === 'daftar' ? (
+        <>
+          <Field label="Nama lengkap" value={name} onChangeText={setName} placeholder="Nama Anda" autoCapitalize="words" />
+          <Field label="Nomor WhatsApp" value={phone} onChangeText={setPhone} placeholder="08xxxxxxxxxx" keyboardType="phone-pad" />
+        </>
+      ) : null}
+      <Field
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        placeholder="nama@email.com"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+      />
+      <Field
+        label="Kata sandi"
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Minimal 6 karakter"
+        secureTextEntry
+        autoCapitalize="none"
+        autoComplete={mode === 'masuk' ? 'current-password' : 'new-password'}
+      />
+      {busy ? <ActivityIndicator color={C.primary} style={{ marginBottom: 12 }} /> : null}
+      <Button title={mode === 'masuk' ? 'Masuk' : 'Daftar'} disabled={!valid || busy} onPress={submit} />
+      <Pressable onPress={() => setMode(mode === 'masuk' ? 'daftar' : 'masuk')} style={{ marginTop: 18, alignItems: 'center' }}>
+        <Text style={{ color: C.muted }}>
+          {mode === 'masuk' ? 'Belum punya akun? ' : 'Sudah punya akun? '}
+          <Text style={{ color: C.primary, fontWeight: '700' }}>{mode === 'masuk' ? 'Daftar' : 'Masuk'}</Text>
+        </Text>
+      </Pressable>
     </>
   );
 }

@@ -16,7 +16,7 @@ Tambahan versi 1.1:
 
 - **Foto iklan**: hingga 8 foto dari galeri atau kamera.
 - **Peta**: lokasi di halaman detail, mode peta di pencarian, dan tombol "Tandai lokasi saya" saat pasang iklan.
-- **Database & login (Supabase)**: iklan, favorit, pesanan jasa, dan foto tersimpan online. Login memakai kode 6 digit lewat email.
+- **Database & login (Supabase)**: iklan, favorit, pesanan jasa, dan foto tersimpan online. Login memakai email + kata sandi.
 
 Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan semua data hanya tersimpan di HP.
 
@@ -24,14 +24,12 @@ Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan s
 
 1. Buat proyek gratis di https://supabase.com/dashboard (region Singapore).
 2. Buka **SQL Editor → New query**, tempel isi `supabase/schema.sql`, lalu **Run**.
-3. Buka **Authentication → Emails → Templates → Magic Link**, ganti isinya agar memuat kode, misalnya:
-   `<h2>Kode masuk Griyaku</h2><p>Kode Anda: <b>{{ .Token }}</b></p><p>Berlaku 1 jam.</p>`
-   (Lakukan juga untuk template **Confirm signup**.)
+3. Buka **Authentication → Sign In / Providers → Email**, matikan **Confirm email**, lalu **Save**. (Tanpa SMTP sendiri, email Supabase sangat dibatasi; dengan opsi ini pendaftaran tidak butuh email.)
 4. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
 5. Jalankan ulang `npx expo start`.
 
 Catatan:
-- Email bawaan Supabase dibatasi beberapa email per jam. Untuk rilis, sambungkan SMTP sendiri di **Authentication → Emails → SMTP Settings**.
+- Untuk rilis, sebaiknya pasang SMTP sendiri (mis. Resend) di **Authentication → Emails → SMTP Settings**, lalu aktifkan lagi **Confirm email** dan fitur lupa kata sandi. Fungsi login kode email (OTP) juga sudah ada di `lib/api.ts`.
 - Lencana **Terverifikasi** hanya bisa diubah admin lewat **Table Editor → properties → verified**.
 - Data contoh tetap tampil bersama iklan asli. Matikan dengan `SHOW_SAMPLE_DATA = false` di `context/AppContext.tsx`.
 - Peta di Android memakai Google Maps. Di Expo Go langsung jalan; untuk build rilis Play Store perlu Google Maps API key di `app.json` (`android.config.googleMaps.apiKey`).
