@@ -1,6 +1,7 @@
 // Pembayaran pesanan jasa lewat Midtrans (Snap). Kunci rahasia Midtrans hanya ada di
 // Supabase Edge Function "payment" (supabase/functions/payment), tidak pernah di aplikasi.
 import * as WebBrowser from 'expo-web-browser';
+import { Platform } from 'react-native';
 
 import type { Booking } from '@/context/AppContext';
 import { supabase } from '@/lib/supabase';
@@ -86,6 +87,20 @@ export async function checkPayment(bookingId: string): Promise<PaymentStatus> {
 
 /** Buka halaman bayar Midtrans (QRIS, VA, e-wallet, dll). Mengembalikan status setelah halaman ditutup. */
 export async function payBooking(bookingId: string): Promise<PaymentStatus> {
+  if (Platform.OS === 'web') {
+    // Buka tab baru langsung saat tombol diketuk agar tidak diblokir pop-up blocker
+    const tab = typeof window !== 'undefined' ? window.open('', '_blank') : null;
+    try {
+      const { redirect_url } = await call<{ redirect_url: string }>({ action: 'create', booking_id: bookingId });
+      if (tab) tab.location.href = redirect_url;
+      else window.location.href = redirect_url;
+    } catch (e) {
+      tab?.close();
+      throw e;
+    }
+    // Status diperbarui otomatis (notifikasi realtime) setelah pembayaran selesai di tab itu.
+    return 'menunggu';
+  }
   const { redirect_url } = await call<{ redirect_url: string }>({ action: 'create', booking_id: bookingId });
   await WebBrowser.openBrowserAsync(redirect_url, {
     presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,

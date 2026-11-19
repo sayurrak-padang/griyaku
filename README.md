@@ -66,6 +66,26 @@ Pesanan jasa dibayar lewat halaman pembayaran Midtrans (QRIS, GoPay, ShopeePay, 
 Untuk live: aktifkan akun Midtrans produksi, ganti `MIDTRANS_SERVER_KEY` dengan Server Key produksi, tambah secret `MIDTRANS_IS_PRODUCTION` = `true`, dan ubah Notification URL di lingkungan Production.
 Harga paket ada di tabel `service_prices`; bila mengubah harga di `data/services.ts`, ubah juga di tabel itu.
 
+## Versi web & link untuk dibagikan (EAS Hosting)
+
+Versi web bisa dibuka di iPhone, Android, dan laptop lewat satu link, dan bisa dipasang ke layar utama (PWA).
+
+Pertama kali:
+```bash
+npm install
+npx eas-cli@latest login        # masuk dengan akun Expo
+npm run deploy:web              # ekspor web lalu unggah ke EAS Hosting
+```
+Saat pertama, EAS menanyakan apakah membuat/menautkan proyek (jawab **Y**) dan nama subdomain (mis. `griyaku`). Hasilnya link seperti `https://griyaku.expo.app`.
+Untuk memperbarui link setelah ada perubahan: unduh kode terbaru, `npm install`, lalu `npm run deploy:web` lagi.
+
+Yang berbeda di web:
+- Notifikasi pop-up dan pengingat jadwal tidak muncul (daftar **Notifikasi** di aplikasi tetap terisi).
+- Peta memakai OpenStreetMap tersemat (tanpa penanda per properti di tampilan peta pencarian).
+- Pembayaran membuka halaman Midtrans di tab baru; status pesanan berubah otomatis setelah bayar.
+- Efek kaca "liquid glass" iOS diganti efek blur biasa.
+- Kamera: di HP membuka kamera/galeri bawaan browser; di laptop membuka pemilih file.
+
 ## Menjalankan
 
 ```bash

@@ -10,6 +10,9 @@ import { GlassBackground } from '@/components/GlassBackground';
 import { C } from '@/constants/theme';
 import { AppProvider } from '@/context/AppContext';
 import { onNotificationTap } from '@/lib/notify';
+import { installWebAlert } from '@/lib/webAlert';
+
+installWebAlert();
 
 export { ErrorBoundary } from 'expo-router';
 

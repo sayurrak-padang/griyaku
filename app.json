@@ -24,7 +24,13 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "Griyaku",
+      "shortName": "Griyaku",
+      "description": "Cari rumah, kontrakan, kost, tanah, dan pesan jasa rumah tangga.",
+      "lang": "id",
+      "themeColor": "#0E8F7E",
+      "backgroundColor": "#F3FAF9"
     },
     "plugins": [
       "expo-router",
