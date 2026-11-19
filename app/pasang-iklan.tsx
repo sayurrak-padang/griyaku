@@ -13,7 +13,7 @@ import { formatThousands, parseNumber } from '@/lib/format';
 const num = (s: string) => (parseNumber(s) || undefined);
 
 export default function PasangIklan() {
-  const { user, addListing } = useApp();
+  const { user, online, addListing } = useApp();
   const [listing, setListing] = useState<ListingKind>('jual');
   const [type, setType] = useState<PropertyType>('rumah');
   const [title, setTitle] = useState('');
@@ -32,6 +32,7 @@ export default function PasangIklan() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const useMyLocation = async () => {
     setLocating(true);
@@ -59,13 +60,23 @@ export default function PasangIklan() {
   if (name.trim().length < 2) errors.push('Nama kontak belum diisi');
   if (phone.replace(/\D/g, '').length < 9) errors.push('Nomor WhatsApp belum benar');
 
-  const submit = () => {
+  const submit = async () => {
+    if (online && !user) {
+      Alert.alert('Masuk dulu', 'Silakan masuk agar iklan tersimpan di akun Anda.', [
+        { text: 'Nanti', style: 'cancel' },
+        { text: 'Masuk', onPress: () => router.push('/login') },
+      ]);
+      return;
+    }
     if (errors.length) {
       Alert.alert('Lengkapi data dulu', errors.join('\n'));
       return;
     }
     const digits = phone.replace(/\D/g, '');
-    const p = addListing({
+    setSaving(true);
+    let p;
+    try {
+      p = await addListing({
       title: title.trim(),
       type,
       listing,
@@ -84,9 +95,16 @@ export default function PasangIklan() {
       description: description.trim() || 'Belum ada deskripsi.',
       facilities: [],
       owner: { name: name.trim(), phone: digits.startsWith('0') ? '62' + digits.slice(1) : digits, role: 'Pemilik' },
-    });
+      });
+    } catch (e) {
+      Alert.alert('Gagal menayangkan iklan', e instanceof Error ? e.message : 'Coba lagi.');
+      return;
+    } finally {
+      setSaving(false);
+    }
+    const created = p;
     Alert.alert('Iklan tayang!', 'Iklan Anda sudah muncul di hasil pencarian.', [
-      { text: 'Lihat iklan', onPress: () => router.replace(`/property/${p.id}`) },
+      { text: 'Lihat iklan', onPress: () => router.replace(`/property/${created.id}`) },
     ]);
   };
 
@@ -202,7 +220,12 @@ export default function PasangIklan() {
           <Field label="Nomor WhatsApp" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="08xxxxxxxxxx" />
         </Card>
 
-        <Button title="Tayangkan iklan" icon="megaphone" onPress={submit} />
+        <Button
+          title={saving ? 'Mengunggah...' : 'Tayangkan iklan'}
+          icon="megaphone"
+          onPress={submit}
+          disabled={saving}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );

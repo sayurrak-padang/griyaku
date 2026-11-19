@@ -31,6 +31,7 @@ export default function ServiceBooking() {
   const [time, setTime] = useState(TIMES[0]);
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
+  const [saving, setSaving] = useState(false);
 
   if (!s) return <Empty icon="alert-circle-outline" title="Layanan tidak ditemukan" text="Silakan pilih layanan lain." />;
 
@@ -38,7 +39,7 @@ export default function ServiceBooking() {
   const total = chosen.price ? chosen.price + ADMIN_FEE : 0;
   const valid = address.trim().length >= 8;
 
-  const submit = () => {
+  const submit = async () => {
     if (!user) {
       Alert.alert('Masuk dulu', 'Silakan masuk agar petugas bisa menghubungi Anda.', [
         { text: 'Nanti', style: 'cancel' },
@@ -46,7 +47,9 @@ export default function ServiceBooking() {
       ]);
       return;
     }
-    addBooking({
+    setSaving(true);
+    try {
+      await addBooking({
       serviceId: s.id,
       serviceName: s.name,
       packageName: chosen.name,
@@ -55,7 +58,13 @@ export default function ServiceBooking() {
       time,
       address: address.trim(),
       note: note.trim() || undefined,
-    });
+      });
+    } catch (e) {
+      Alert.alert('Gagal memesan', e instanceof Error ? e.message : 'Coba lagi.');
+      return;
+    } finally {
+      setSaving(false);
+    }
     Alert.alert('Pesanan terkirim', 'Kami akan mengonfirmasi jadwal lewat WhatsApp.', [
       { text: 'Lihat pesanan', onPress: () => router.replace('/pesanan') },
     ]);
@@ -143,7 +152,7 @@ export default function ServiceBooking() {
           <Text style={{ fontSize: 12, color: C.muted }}>Total{chosen.price ? ' (termasuk biaya layanan)' : ''}</Text>
           <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>{total ? rupiah(total) : 'Gratis'}</Text>
         </View>
-        <Button title="Pesan sekarang" onPress={submit} disabled={!valid} style={{ paddingHorizontal: 24 }} />
+        <Button title={saving ? 'Mengirim...' : 'Pesan sekarang'} onPress={submit} disabled={!valid || saving} style={{ paddingHorizontal: 24 }} />
       </View>
     </KeyboardAvoidingView>
   );

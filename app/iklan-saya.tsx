@@ -27,7 +27,7 @@ export default function IklanSaya() {
             onPress={() =>
               Alert.alert('Hapus iklan?', item.title, [
                 { text: 'Batal', style: 'cancel' },
-                { text: 'Hapus', style: 'destructive', onPress: () => removeListing(item.id) },
+                { text: 'Hapus', style: 'destructive', onPress: () => removeListing(item.id).catch((e) => Alert.alert('Gagal menghapus', String(e?.message ?? e))) },
               ])
             }
           />

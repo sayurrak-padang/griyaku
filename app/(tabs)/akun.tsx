@@ -8,7 +8,7 @@ import { C, R } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function Akun() {
-  const { user, logout, favorites, myListings, bookings } = useApp();
+  const { user, online, logout, favorites, myListings, bookings } = useApp();
 
   const menu: { icon: IconName; label: string; badge?: number; href: Href }[] = [
     { icon: 'heart-outline', label: 'Favorit saya', badge: favorites.length, href: '/favorit' },
@@ -33,7 +33,7 @@ export default function Akun() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.name}>{user ? user.name : 'Belum masuk'}</Text>
-            <Text style={styles.phone}>{user ? `+${user.phone}` : 'Masuk untuk menyimpan iklan dan pesanan'}</Text>
+            <Text style={styles.phone}>{user ? user.email ?? (user.phone ? `+${user.phone}` : '') : 'Masuk untuk menyimpan iklan dan pesanan'}</Text>
           </View>
         </View>
         {!user ? <Button title="Masuk / Daftar" onPress={() => router.push('/login')} style={{ marginTop: 12 }} /> : null}
@@ -66,7 +66,7 @@ export default function Akun() {
           </Pressable>
           <Pressable
             style={styles.menuItem}
-            onPress={() => Alert.alert('Tentang Griyaku', 'Versi 1.0.0 (prototipe dengan data contoh).')}>
+            onPress={() => Alert.alert('Tentang Griyaku', online ? 'Versi 1.1.0 · tersambung ke database.' : 'Versi 1.1.0 · mode uji coba (data hanya di HP ini).')}>
             <Ionicons name="information-circle-outline" size={22} color={C.primary} />
             <Text style={styles.menuLabel}>Tentang aplikasi</Text>
             <Ionicons name="chevron-forward" size={18} color={C.muted} />

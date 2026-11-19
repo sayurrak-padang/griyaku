@@ -34,7 +34,7 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 export default function Search() {
   const params = useLocalSearchParams<{ type?: string; mode?: string; city?: string; verified?: string; q?: string; max?: string }>();
-  const { allProperties } = useApp();
+  const { allProperties, online, loading, refresh } = useApp();
 
   const [mode, setMode] = useState<ListingKind | 'semua'>('semua');
   const [type, setType] = useState<PropertyType | null>(null);
@@ -173,6 +173,8 @@ export default function Search() {
       <FlatList
         data={results}
         keyExtractor={(p) => p.id}
+        refreshing={online ? loading : undefined}
+        onRefresh={online ? refresh : undefined}
         contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
         ListHeaderComponent={
           <Text style={styles.count}>
