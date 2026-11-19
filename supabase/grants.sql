@@ -25,5 +25,4 @@ begin
 end $fn$;
 grant usage on schema public to service_role;
 grant select, update on public.bookings to service_role;
-grant select on public.service_prices to service_role;
 grant insert on public.notifications to service_role;
