@@ -95,6 +95,8 @@ export async function listAllBookings(): Promise<AdminBooking[]> {
     address: b.address,
     note: b.note ?? undefined,
     status: b.status,
+    paymentStatus: b.payment_status ?? undefined,
+    paymentMethod: b.payment_method ?? undefined,
     createdAt: b.created_at,
   }));
 }

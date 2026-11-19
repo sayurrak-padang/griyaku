@@ -25,6 +25,7 @@ import { Property } from '@/data/properties';
 import { Stars } from '@/components/Reviews';
 import { SERVICES } from '@/data/services';
 import * as admin from '@/lib/admin';
+import { METHOD_LABEL, PAYMENT_LABEL } from '@/lib/payments';
 import * as rv from '@/lib/reviews';
 import { formatDate, rupiah } from '@/lib/format';
 
@@ -370,6 +371,12 @@ function BookingsTab() {
           <Text style={styles.meta}>
             {formatDate(b.date)}, {b.time} · {b.price ? rupiah(b.price) : 'Gratis'}
           </Text>
+          {b.price && b.paymentStatus ? (
+            <Text style={[styles.meta, { color: PAYMENT_LABEL[b.paymentStatus].fg, fontWeight: '700' }]}>
+              Pembayaran: {PAYMENT_LABEL[b.paymentStatus].label}
+              {b.paymentMethod ? ` (${METHOD_LABEL[b.paymentMethod] ?? b.paymentMethod})` : ''}
+            </Text>
+          ) : null}
           <Text style={styles.meta} numberOfLines={2}>
             {b.address}
           </Text>

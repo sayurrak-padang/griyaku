@@ -27,6 +27,9 @@ export type Booking = {
   address: string;
   note?: string;
   status: 'Menunggu konfirmasi' | 'Dijadwalkan' | 'Selesai' | 'Dibatalkan';
+  /** Hanya mode Supabase dengan supabase/payments.sql */
+  paymentStatus?: 'belum_bayar' | 'menunggu' | 'lunas' | 'gagal' | 'kedaluwarsa' | 'dikembalikan';
+  paymentMethod?: string;
   createdAt: string;
 };
 
@@ -68,6 +71,7 @@ type Ctx = {
   addListing: (p: NewListing) => Promise<Property>;
   removeListing: (id: string) => Promise<void>;
   addBooking: (b: NewBooking) => Promise<Booking>;
+  refreshBookings: () => Promise<void>;
   notifications: AppNotification[];
   unreadNotifications: number;
   unreadChats: number;
@@ -177,6 +181,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!supabase || !authId) return;
     return chat.subscribeNotifications(authId, (n) => {
       setRemoteNotifs((list) => (list.some((x) => x.id === n.id) ? list : [n, ...list]));
+      if (n.kind === 'pesanan') api.fetchBookings().then(setRemoteBookings).catch(() => {});
       // Jangan munculkan banner untuk chat yang sedang dibuka
       if (n.link && activeChatRef.current && n.link === `/chat/${activeChatRef.current}`) return;
       notifyNow(n.title, n.body, n.link).catch(() => {});
@@ -262,6 +267,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setLocal((s) => ({ ...s, myListings: s.myListings.filter((l) => l.id !== id) }));
   }, []);
 
+  const refreshBookings = useCallback(async () => {
+    if (!supabase || !authIdRef.current) return;
+    try {
+      setRemoteBookings(await api.fetchBookings());
+    } catch (e) {
+      console.warn('Gagal memuat pesanan', e);
+    }
+  }, []);
+
   const addBooking = useCallback(async (b: NewBooking) => {
     const uid = authIdRef.current;
     if (supabase) {
@@ -320,6 +334,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       addListing,
       removeListing,
       addBooking,
+      refreshBookings,
       notifications,
       unreadNotifications: notifications.filter((n) => !n.read).length,
       unreadChats: notifications.filter((n) => !n.read && n.kind === 'chat').length,
@@ -327,7 +342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       refreshNotifications,
       setActiveChat,
     };
-  }, [remoteNotifs, markAllNotificationsRead, refreshNotifications, setActiveChat, local, ready, loading, authId, authEmail, profile, remote, remoteFavs, remoteBookings, refresh, login, saveProfile, logout, toggleFavorite, addListing, removeListing, addBooking]);
+  }, [remoteNotifs, markAllNotificationsRead, refreshNotifications, setActiveChat, local, ready, loading, authId, authEmail, profile, remote, remoteFavs, remoteBookings, refresh, login, saveProfile, logout, toggleFavorite, addListing, removeListing, addBooking, refreshBookings]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

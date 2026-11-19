@@ -172,6 +172,8 @@ export async function fetchBookings(): Promise<Booking[]> {
     address: b.address,
     note: b.note ?? undefined,
     status: b.status,
+    paymentStatus: b.payment_status ?? undefined,
+    paymentMethod: b.payment_method ?? undefined,
     createdAt: b.created_at,
   }));
 }
@@ -196,8 +198,10 @@ export async function createBooking(userId: string, b: Omit<Booking, 'id' | 'cre
   return {
     ...b,
     id: data.id,
+    price: Number(data.price),
     createdAt: data.created_at,
     status: data.status,
+    paymentStatus: data.payment_status ?? undefined,
   };
 }
 

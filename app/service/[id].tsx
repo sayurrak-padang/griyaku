@@ -7,8 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReviewsSection } from '@/components/Reviews';
 import { Button, Chip, Empty, Field, IconName } from '@/components/ui';
 import { C, R } from '@/constants/theme';
-import { useApp } from '@/context/AppContext';
+import { Booking, useApp } from '@/context/AppContext';
 import { SERVICES } from '@/data/services';
+import { payBooking } from '@/lib/payments';
 import { DAYS, groupThousands, MONTHS, rupiah, toISODate } from '@/lib/format';
 
 const TIMES = ['08.00', '10.00', '13.00', '15.00', '18.00'];
@@ -16,7 +17,7 @@ const ADMIN_FEE = 5_000;
 
 export default function ServiceBooking() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user, addBooking } = useApp();
+  const { user, addBooking, refreshBookings } = useApp();
   const insets = useSafeAreaInsets();
   const s = SERVICES.find((x) => x.id === id);
 
@@ -49,8 +50,9 @@ export default function ServiceBooking() {
       return;
     }
     setSaving(true);
+    let created: Booking;
     try {
-      await addBooking({
+      created = await addBooking({
       serviceId: s.id,
       serviceName: s.name,
       packageName: chosen.name,
@@ -65,6 +67,25 @@ export default function ServiceBooking() {
       return;
     } finally {
       setSaving(false);
+    }
+    if (created.price > 0 && created.paymentStatus) {
+      Alert.alert('Pesanan terkirim', `Total ${rupiah(created.price)}. Bayar sekarang lewat QRIS, transfer VA, atau e-wallet?`, [
+        { text: 'Nanti', style: 'cancel', onPress: () => router.replace('/pesanan') },
+        {
+          text: 'Bayar sekarang',
+          onPress: async () => {
+            router.replace('/pesanan');
+            try {
+              await payBooking(created.id);
+            } catch (e) {
+              Alert.alert('Gagal membuka pembayaran', e instanceof Error ? e.message : String(e));
+            } finally {
+              refreshBookings();
+            }
+          },
+        },
+      ]);
+      return;
     }
     Alert.alert('Pesanan terkirim', 'Kami akan mengonfirmasi jadwal lewat WhatsApp.', [
       { text: 'Lihat pesanan', onPress: () => router.replace('/pesanan') },
