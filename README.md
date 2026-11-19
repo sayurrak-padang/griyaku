@@ -18,6 +18,12 @@ Tambahan versi 1.1:
 - **Peta**: lokasi di halaman detail, mode peta di pencarian, dan tombol "Tandai lokasi saya" saat pasang iklan.
 - **Database & login (Supabase)**: iklan, favorit, pesanan jasa, dan foto tersimpan online. Login memakai email + kata sandi.
 
+Tambahan versi 1.2:
+
+- **Chat** antara pencari dan pemilik iklan (realtime), tombol "Chat" di detail properti untuk iklan asli, daftar percakapan, dan pertanyaan cepat.
+- **Notifikasi**: kotak notifikasi (pesan baru, pesanan diterima, status pesanan berubah), banner di HP saat ada pesan baru, dan pengingat jadwal jasa (malam sebelumnya & 1 jam sebelum).
+- Catatan: notifikasi muncul saat aplikasi terbuka atau berjalan di latar. Push notification saat aplikasi tertutup penuh butuh build EAS (bukan Expo Go).
+
 Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan semua data hanya tersimpan di HP.
 
 ## Menyambungkan Supabase (sekali saja)
@@ -25,8 +31,9 @@ Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan s
 1. Buat proyek gratis di https://supabase.com/dashboard (region Singapore).
 2. Buka **SQL Editor → New query**, tempel isi `supabase/schema.sql`, lalu **Run**.
 3. Buka **Authentication → Sign In / Providers → Email**, matikan **Confirm email**, lalu **Save**. (Tanpa SMTP sendiri, email Supabase sangat dibatasi; dengan opsi ini pendaftaran tidak butuh email.)
-4. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
-5. Jalankan ulang `npx expo start`.
+4. Untuk **chat & notifikasi**: buka lagi **SQL Editor → New query**, tempel isi `supabase/chat.sql`, lalu **Run**.
+5. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
+6. Jalankan ulang `npx expo start`.
 
 Catatan:
 - Untuk rilis, sebaiknya pasang SMTP sendiri (mis. Resend) di **Authentication → Emails → SMTP Settings**, lalu aktifkan lagi **Confirm email** dan fitur lupa kata sandi. Fungsi login kode email (OTP) juga sudah ada di `lib/api.ts`.

@@ -22,7 +22,7 @@ const QUICK: { label: string; sub: string; icon: IconName; color: string; bg: st
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const { user, allProperties } = useApp();
+  const { user, allProperties, unreadChats, unreadNotifications } = useApp();
   const featured = allProperties.filter((p) => p.listing === 'jual' && p.verified).slice(0, 6);
   const kost = allProperties.filter((p) => p.type === 'kost' || p.type === 'kontrakan').slice(0, 6);
 
@@ -35,9 +35,11 @@ export default function Home() {
           </View>
           <Text style={styles.brand}>Griyaku</Text>
           <View style={{ flex: 1 }} />
-          <Pressable onPress={() => router.push('/favorit')} hitSlop={8}>
-            <Ionicons name="heart-outline" size={24} color={C.text} />
-          </Pressable>
+          <View style={styles.actions}>
+            <HeaderIcon icon="chatbubbles-outline" badge={unreadChats} onPress={() => router.push('/chat')} />
+            <HeaderIcon icon="notifications-outline" badge={unreadNotifications} onPress={() => router.push('/notifikasi')} />
+            <HeaderIcon icon="heart-outline" onPress={() => router.push('/favorit')} />
+          </View>
         </View>
         <Text style={styles.greet}>Halo{user ? `, ${user.name.split(' ')[0]}` : ''} 👋</Text>
         <Text style={styles.heroTitle}>Temukan tempat tinggal yang pas untukmu</Text>
@@ -149,7 +151,46 @@ export default function Home() {
   );
 }
 
+function HeaderIcon({ icon, badge, onPress }: { icon: IconName; badge?: number; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={6} style={styles.headerIcon}>
+      <Ionicons name={icon} size={21} color={C.text} />
+      {badge ? (
+        <View style={styles.headerBadge}>
+          <Text style={styles.headerBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  actions: { flexDirection: 'row', gap: 8 },
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: C.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#fff',
+  },
+  headerBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   hero: { paddingHorizontal: 16, paddingBottom: 8 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   logo: { width: 30, height: 30, borderRadius: 9, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },

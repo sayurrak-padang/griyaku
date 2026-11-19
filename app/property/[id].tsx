@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Linking, Pressable, ScrollView, Share, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+
+import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Photo } from '@/components/Photo';
@@ -12,11 +13,13 @@ import { C, R } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { typeLabel } from '@/data/properties';
 import { formatDate, monthlyInstallment, rupiah, rupiahShort } from '@/lib/format';
+import { isChatable, openConversation } from '@/lib/chat';
 import { openInMaps } from '@/lib/geo';
 
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { allProperties, isFavorite, toggleFavorite } = useApp();
+  const { allProperties, isFavorite, toggleFavorite, user, online } = useApp();
+  const [opening, setOpening] = useState(false);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
@@ -27,6 +30,25 @@ export default function PropertyDetail() {
   }
 
   const fav = isFavorite(p.id);
+  const chatable = online && isChatable(p);
+  const startChat = async () => {
+    if (!user?.id) {
+      Alert.alert('Masuk dulu', 'Silakan masuk untuk mengirim pesan ke pemilik.', [
+        { text: 'Nanti', style: 'cancel' },
+        { text: 'Masuk', onPress: () => router.push('/login') },
+      ]);
+      return;
+    }
+    setOpening(true);
+    try {
+      const c = await openConversation(p, { id: user.id, name: user.name });
+      router.push(`/chat/${c.id}`);
+    } catch (e) {
+      Alert.alert('Gagal membuka chat', e instanceof Error ? e.message : String(e));
+    } finally {
+      setOpening(false);
+    }
+  };
   const canKpr = p.listing === 'jual' && p.type !== 'gudang';
   const monthly = monthlyInstallment(p.price * 0.9, 7.5, 20);
   const waText = encodeURIComponent(`Halo ${p.owner.name}, saya tertarik dengan "${p.title}" di Griyaku. Apakah masih tersedia?`);
@@ -187,19 +209,19 @@ export default function PropertyDetail() {
       </ScrollView>
 
       <View style={[styles.bar, { paddingBottom: insets.bottom + 12 }]}>
-        <Button
-          title="Telepon"
-          variant="outline"
-          icon="call-outline"
-          style={{ flex: 1 }}
-          onPress={() => Linking.openURL(`tel:+${p.owner.phone}`)}
-        />
+        <Pressable style={styles.iconBtn} onPress={() => Linking.openURL(`tel:+${p.owner.phone}`)} accessibilityLabel="Telepon">
+          <Ionicons name="call-outline" size={20} color={C.primary} />
+        </Pressable>
         <Button
           title="WhatsApp"
+          variant={chatable ? 'outline' : 'primary'}
           icon="logo-whatsapp"
-          style={{ flex: 1.4 }}
+          style={{ flex: 1 }}
           onPress={() => Linking.openURL(`https://wa.me/${p.owner.phone}?text=${waText}`)}
         />
+        {chatable ? (
+          <Button title={opening ? 'Membuka...' : 'Chat'} icon="chatbubbles" style={{ flex: 1 }} onPress={startChat} disabled={opening} />
+        ) : null}
       </View>
     </View>
   );
@@ -215,6 +237,15 @@ function Tag({ text, color, icon }: { text: string; color: string; icon?: IconNa
 }
 
 const styles = StyleSheet.create({
+  iconBtn: {
+    width: 50,
+    borderRadius: R.md,
+    borderWidth: 1.5,
+    borderColor: C.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: C.card,
+  },
   counter: {
     position: 'absolute',
     right: 12,

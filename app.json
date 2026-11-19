@@ -2,7 +2,7 @@
   "expo": {
     "name": "Griyaku",
     "slug": "griyaku",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "griyaku",
@@ -47,6 +47,12 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Griyaku memakai lokasi Anda untuk menandai lokasi properti dan menampilkan properti terdekat."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0E8F7E"
         }
       ]
     ],

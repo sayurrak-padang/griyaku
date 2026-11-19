@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DefaultTheme, Href, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { GlassBackground } from '@/components/GlassBackground';
 import { C } from '@/constants/theme';
 import { AppProvider } from '@/context/AppContext';
+import { onNotificationTap } from '@/lib/notify';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -27,6 +28,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync();
   }, [loaded, error]);
+
+  // Buka halaman terkait saat notifikasi diketuk
+  useEffect(() => onNotificationTap((link) => router.push(link as Href)), []);
 
   if (!loaded && !error) return null;
 
@@ -51,6 +55,9 @@ export default function RootLayout() {
           <Stack.Screen name="favorit" options={{ title: 'Favorit Saya' }} />
           <Stack.Screen name="iklan-saya" options={{ title: 'Iklan Saya' }} />
           <Stack.Screen name="pesanan" options={{ title: 'Pesanan Jasa' }} />
+          <Stack.Screen name="chat/index" options={{ title: 'Chat' }} />
+          <Stack.Screen name="chat/[id]" options={{ title: 'Chat' }} />
+          <Stack.Screen name="notifikasi" options={{ title: 'Notifikasi' }} />
           <Stack.Screen
             name="login"
             options={{ title: 'Masuk', presentation: 'modal', contentStyle: { backgroundColor: C.surface }, headerStyle: { backgroundColor: C.surface } }}

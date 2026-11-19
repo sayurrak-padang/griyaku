@@ -8,9 +8,11 @@ import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function Akun() {
-  const { user, online, logout, favorites, myListings, bookings } = useApp();
+  const { user, online, logout, favorites, myListings, bookings, unreadChats, unreadNotifications } = useApp();
 
   const menu: { icon: IconName; label: string; badge?: number; href: Href }[] = [
+    { icon: 'chatbubbles-outline', label: 'Chat', badge: unreadChats, href: '/chat' },
+    { icon: 'notifications-outline', label: 'Notifikasi', badge: unreadNotifications, href: '/notifikasi' },
     { icon: 'heart-outline', label: 'Favorit saya', badge: favorites.length, href: '/favorit' },
     { icon: 'megaphone-outline', label: 'Iklan saya', badge: myListings.length, href: '/iklan-saya' },
     { icon: 'receipt-outline', label: 'Pesanan jasa', badge: bookings.length, href: '/pesanan' },
