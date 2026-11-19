@@ -5,6 +5,7 @@ import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, Vi
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PropertyCard } from '@/components/PropertyCard';
+import { PropertyMap } from '@/components/PropertyMap';
 import { Button, Chip, Empty, Field } from '@/components/ui';
 import { C, R } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
@@ -43,6 +44,7 @@ export default function Search() {
   const [draft, setDraft] = useState<Filters>(NO_FILTERS);
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
+  const [view, setView] = useState<'list' | 'map'>('list');
 
   // Terapkan parameter dari Beranda (jenis, kota, mode)
   useEffect(() => {
@@ -146,6 +148,9 @@ export default function Search() {
             <Ionicons name="swap-vertical" size={16} color={C.primary} />
             <Text style={styles.toolText}>Urutkan</Text>
           </Pressable>
+          <Pressable style={styles.tool} onPress={() => setView(view === 'list' ? 'map' : 'list')} hitSlop={6}>
+            <Ionicons name={view === 'list' ? 'map-outline' : 'list-outline'} size={18} color={C.primary} />
+          </Pressable>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}>
@@ -156,6 +161,15 @@ export default function Search() {
         </ScrollView>
       </View>
 
+      {view === 'map' ? (
+        <View style={{ flex: 1 }}>
+          {/* key: posisikan ulang peta setiap kali hasil berubah */}
+          <PropertyMap key={results.map((r) => r.id).join(',')} properties={results} style={{ flex: 1 }} />
+          <View style={styles.mapCount}>
+            <Text style={styles.mapCountText}>{results.length} properti · ketuk penanda lalu label untuk detail</Text>
+          </View>
+        </View>
+      ) : (
       <FlatList
         data={results}
         keyExtractor={(p) => p.id}
@@ -181,6 +195,7 @@ export default function Search() {
           </Empty>
         }
       />
+      )}
 
       {/* Urutkan */}
       <Modal visible={showSort} transparent animationType="fade" onRequestClose={() => setShowSort(false)}>
@@ -309,6 +324,20 @@ const styles = StyleSheet.create({
   dot: { backgroundColor: C.primary, borderRadius: 9, minWidth: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
   dotText: { color: '#fff', fontSize: 11, fontWeight: '700' },
   count: { fontSize: 13, color: C.muted, marginBottom: 2 },
+  mapCount: {
+    position: 'absolute',
+    top: 12,
+    alignSelf: 'center',
+    backgroundColor: C.card,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  mapCountText: { fontSize: 12, fontWeight: '600', color: C.text },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: C.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36 },
   sheetTitle: { fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 6 },

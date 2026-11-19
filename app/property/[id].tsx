@@ -5,12 +5,14 @@ import { Linking, Pressable, ScrollView, Share, StyleSheet, Text, useWindowDimen
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Photo } from '@/components/Photo';
+import { PropertyMap } from '@/components/PropertyMap';
 import { priceText } from '@/components/PropertyCard';
 import { Button, Empty, IconName } from '@/components/ui';
 import { C, R } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { typeLabel } from '@/data/properties';
 import { formatDate, monthlyInstallment, rupiah, rupiahShort } from '@/lib/format';
+import { openInMaps } from '@/lib/geo';
 
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -142,6 +144,24 @@ export default function PropertyDetail() {
                 </View>
               ))}
             </View>
+          </View>
+        ) : null}
+
+        {p.lat !== undefined && p.lng !== undefined ? (
+          <View style={styles.section}>
+            <Text style={styles.h2}>Lokasi</Text>
+            <View style={{ borderRadius: R.md, overflow: 'hidden' }}>
+              <PropertyMap properties={[p]} single style={{ height: 180 }} />
+            </View>
+            <Text style={styles.locText}>
+              {p.district}, {p.city} {p.mine ? '' : '(lokasi perkiraan)'}
+            </Text>
+            <Button
+              title="Buka di aplikasi peta"
+              variant="outline"
+              icon="navigate-outline"
+              onPress={() => openInMaps(p.lat!, p.lng!, p.title)}
+            />
           </View>
         ) : null}
 

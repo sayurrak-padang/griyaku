@@ -32,6 +32,8 @@ export type Property = {
   facilities: string[];
   owner: { name: string; phone: string; role: 'Pemilik' | 'Agen' | 'Developer' };
   postedAt: string; // ISO date
+  lat?: number;
+  lng?: number;
   mine?: boolean;
 };
 
@@ -47,6 +49,23 @@ export const PROPERTY_TYPES: { key: PropertyType; label: string; icon: string }[
 
 export const typeLabel = (t: PropertyType) =>
   PROPERTY_TYPES.find((p) => p.key === t)?.label ?? t;
+
+export const CITY_CENTER: Record<string, { lat: number; lng: number }> = {
+  'Jakarta Selatan': { lat: -6.2615, lng: 106.8106 },
+  'Jakarta Timur': { lat: -6.225, lng: 106.9004 },
+  'Tangerang Selatan': { lat: -6.2886, lng: 106.7179 },
+  Bekasi: { lat: -6.2383, lng: 106.9756 },
+  Depok: { lat: -6.4025, lng: 106.7942 },
+  Bogor: { lat: -6.5971, lng: 106.806 },
+  Bandung: { lat: -6.9175, lng: 107.6191 },
+  Yogyakarta: { lat: -7.7956, lng: 110.3695 },
+  Semarang: { lat: -6.9667, lng: 110.4167 },
+  Surabaya: { lat: -7.2575, lng: 112.7521 },
+  Malang: { lat: -7.9666, lng: 112.6326 },
+  Padang: { lat: -0.9471, lng: 100.4172 },
+  Medan: { lat: 3.5952, lng: 98.6722 },
+  Makassar: { lat: -5.1477, lng: 119.4327 },
+};
 
 export const CITIES = [
   'Jakarta Selatan',
@@ -344,3 +363,12 @@ export const PROPERTIES: Property[] = [
     owner: owners[1], postedAt: '2026-11-16',
   },
 ];
+
+// Koordinat perkiraan untuk data contoh: pusat kota + sedikit geser agar tidak bertumpuk.
+PROPERTIES.forEach((p, i) => {
+  const c = CITY_CENTER[p.city];
+  if (c && p.lat === undefined) {
+    p.lat = c.lat + Math.sin(i * 1.7) * 0.03;
+    p.lng = c.lng + Math.cos(i * 2.3) * 0.03;
+  }
+});

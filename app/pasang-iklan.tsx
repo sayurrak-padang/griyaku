@@ -1,11 +1,13 @@
+import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { PhotoPicker } from '@/components/PhotoPicker';
 import { Button, Card, Chip, Field } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
-import { CITIES, ListingKind, PROPERTY_TYPES, PropertyType } from '@/data/properties';
+import { CITIES, CITY_CENTER, ListingKind, PROPERTY_TYPES, PropertyType } from '@/data/properties';
 import { formatThousands, parseNumber } from '@/lib/format';
 
 const num = (s: string) => (parseNumber(s) || undefined);
@@ -27,6 +29,26 @@ export default function PasangIklan() {
   const [description, setDescription] = useState('');
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user ? '0' + user.phone.slice(2) : '');
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const useMyLocation = async () => {
+    setLocating(true);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (!perm.granted) {
+        Alert.alert('Izin lokasi ditolak', 'Lokasi iklan akan memakai titik tengah kota.');
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    } catch {
+      Alert.alert('Gagal mengambil lokasi', 'Pastikan GPS aktif lalu coba lagi.');
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const isLand = type === 'tanah';
   const errors: string[] = [];
@@ -56,7 +78,9 @@ export default function PasangIklan() {
       landArea: num(land),
       buildingArea: isLand ? undefined : num(building),
       certificate: listing === 'jual' ? certificate : undefined,
-      images: [],
+      images: photos,
+      lat: coords?.lat ?? (city ? CITY_CENTER[city]?.lat : undefined),
+      lng: coords?.lng ?? (city ? CITY_CENTER[city]?.lng : undefined),
       description: description.trim() || 'Belum ada deskripsi.',
       facilities: [],
       owner: { name: name.trim(), phone: digits.startsWith('0') ? '62' + digits.slice(1) : digits, role: 'Pemilik' },
@@ -114,6 +138,20 @@ export default function PasangIklan() {
             ))}
           </View>
           <Field label="Kecamatan / area" value={district} onChangeText={setDistrict} placeholder="Misal: Serpong" />
+          <Button
+            title={coords ? 'Lokasi tersimpan ✓ (ketuk untuk perbarui)' : locating ? 'Mengambil lokasi...' : 'Tandai lokasi saya saat ini'}
+            variant="outline"
+            icon="locate-outline"
+            disabled={locating}
+            onPress={useMyLocation}
+          />
+          <Text style={[styles.note, { marginTop: 6 }]}>
+            Pakai tombol ini saat Anda berada di lokasi properti. Jika tidak, peta memakai titik tengah kota.
+          </Text>
+        </Card>
+
+        <Card>
+          <PhotoPicker value={photos} onChange={setPhotos} />
         </Card>
 
         <Card>
@@ -156,7 +194,6 @@ export default function PasangIklan() {
             multiline
             style={{ minHeight: 100, textAlignVertical: 'top', paddingVertical: 12, fontSize: 15, color: C.text, flex: 1 }}
           />
-          <Text style={styles.note}>Unggah foto akan tersedia di versi berikutnya.</Text>
         </Card>
 
         <Card>

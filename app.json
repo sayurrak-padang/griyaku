@@ -35,6 +35,19 @@
           "resizeMode": "contain",
           "backgroundColor": "#0E8F7E"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Griyaku perlu akses galeri untuk menambahkan foto ke iklan properti Anda.",
+          "cameraPermission": "Griyaku perlu akses kamera untuk memotret properti yang Anda iklankan."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Griyaku memakai lokasi Anda untuk menandai lokasi properti dan menampilkan properti terdekat."
+        }
       ]
     ],
     "experiments": {
