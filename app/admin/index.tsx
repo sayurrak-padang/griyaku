@@ -22,10 +22,13 @@ import { Button, Card, Chip, Empty } from '@/components/ui';
 import { C, R } from '@/constants/theme';
 import { Booking, useApp } from '@/context/AppContext';
 import { Property } from '@/data/properties';
+import { Stars } from '@/components/Reviews';
+import { SERVICES } from '@/data/services';
 import * as admin from '@/lib/admin';
+import * as rv from '@/lib/reviews';
 import { formatDate, rupiah } from '@/lib/format';
 
-type Tab = 'iklan' | 'pesanan' | 'pengguna';
+type Tab = 'iklan' | 'ulasan' | 'pesanan' | 'pengguna';
 
 const PROP_FILTERS: { key: admin.PropertyStatus | 'semua'; label: string }[] = [
   { key: 'menunggu', label: 'Menunggu' },
@@ -60,6 +63,7 @@ export default function AdminPanel() {
         {(
           [
             ['iklan', 'Iklan', 'home-outline'],
+            ['ulasan', 'Ulasan', 'star-outline'],
             ['pesanan', 'Pesanan', 'receipt-outline'],
             ['pengguna', 'Pengguna', 'people-outline'],
           ] as const
@@ -70,7 +74,7 @@ export default function AdminPanel() {
           </Pressable>
         ))}
       </View>
-      {tab === 'iklan' ? <ListingsTab onChanged={refresh} /> : tab === 'pesanan' ? <BookingsTab /> : <UsersTab myId={user.id} />}
+      {tab === 'iklan' ? <ListingsTab onChanged={refresh} /> : tab === 'ulasan' ? <ReviewsTab /> : tab === 'pesanan' ? <BookingsTab /> : <UsersTab myId={user.id} />}
     </View>
   );
 }
@@ -231,6 +235,95 @@ function ListingsTab({ onChanged }: { onChanged: () => Promise<void> }) {
         </View>
       </Modal>
     </>
+  );
+}
+
+// ============ ULASAN ============
+function ReviewsTab() {
+  const { getProperty } = useApp();
+  const { items, setItems, loading, reload } = useLoader<rv.Review>(rv.listAllReviews);
+  const [filter, setFilter] = useState<'semua' | 'tampil' | 'disembunyikan' | 'rendah'>('semua');
+  const list = items.filter((r) =>
+    filter === 'tampil' ? !r.hidden : filter === 'disembunyikan' ? r.hidden : filter === 'rendah' ? r.rating <= 2 : true,
+  );
+  const targetName = (r: rv.Review) =>
+    r.targetType === 'service'
+      ? `Jasa: ${SERVICES.find((s) => s.id === r.targetId)?.name ?? r.targetId}`
+      : `Properti: ${getProperty(r.targetId)?.title ?? 'iklan tidak tersedia'}`;
+
+  const toggle = async (r: rv.Review) => {
+    setItems((xs) => xs.map((x) => (x.id === r.id ? { ...x, hidden: !r.hidden } : x)));
+    try {
+      await rv.setReviewHidden(r.id, !r.hidden);
+    } catch (e) {
+      setItems((xs) => xs.map((x) => (x.id === r.id ? r : x)));
+      Alert.alert('Gagal', errText(e));
+    }
+  };
+  const remove = (r: rv.Review) =>
+    Alert.alert('Hapus ulasan ini?', r.comment || `${r.rating} bintang`, [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Hapus',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await rv.deleteReview(r.id);
+            setItems((xs) => xs.filter((x) => x.id !== r.id));
+          } catch (e) {
+            Alert.alert('Gagal', errText(e));
+          }
+        },
+      },
+    ]);
+
+  return (
+    <FlatList
+      data={list}
+      keyExtractor={(r) => r.id}
+      contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 40 }}
+      refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} tintColor={C.primary} />}
+      ListHeaderComponent={
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {(
+            [
+              ['semua', 'Semua'],
+              ['rendah', 'Bintang 1-2'],
+              ['tampil', 'Tampil'],
+              ['disembunyikan', 'Disembunyikan'],
+            ] as const
+          ).map(([k, label]) => (
+            <Chip key={k} label={label} active={filter === k} onPress={() => setFilter(k)} />
+          ))}
+        </ScrollView>
+      }
+      renderItem={({ item: r }) => (
+        <Card style={{ gap: 6, opacity: r.hidden ? 0.75 : 1 }}>
+          <Pressable onPress={() => router.push(r.targetType === 'service' ? `/service/${r.targetId}` : `/property/${r.targetId}`)}>
+            <Text style={[styles.meta, { color: C.primary, fontWeight: '700' }]} numberOfLines={1}>
+              {targetName(r)}
+            </Text>
+          </Pressable>
+          <View style={styles.rowWrap}>
+            <Text style={styles.title}>{r.userName}</Text>
+            <Stars value={r.rating} />
+            {r.hidden ? <Tag text="Disembunyikan" color={C.danger} /> : null}
+          </View>
+          <Text style={styles.meta}>{formatDate(r.createdAt)}</Text>
+          {r.comment ? <Text style={{ fontSize: 14, color: C.text, lineHeight: 20 }}>{r.comment}</Text> : null}
+          <View style={[styles.rowWrap, { marginTop: 4 }]}>
+            <SmallBtn
+              icon={r.hidden ? 'eye-outline' : 'eye-off-outline'}
+              label={r.hidden ? 'Tampilkan' : 'Sembunyikan'}
+              color={C.info}
+              onPress={() => toggle(r)}
+            />
+            <SmallBtn icon="trash-outline" label="Hapus" color={C.danger} onPress={() => remove(r)} />
+          </View>
+        </Card>
+      )}
+      ListEmptyComponent={loading ? undefined : <Empty icon="star-outline" title="Belum ada ulasan" text="Ulasan dari pengguna akan muncul di sini." />}
+    />
   );
 }
 
@@ -404,11 +497,10 @@ function Tag({ text, color }: { text: string; color: string }) {
 }
 
 const styles = StyleSheet.create({
-  tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 12 },
+  tabs: { flexDirection: 'row', gap: 6, paddingHorizontal: 16, paddingTop: 12 },
   tab: {
     flex: 1,
-    flexDirection: 'row',
-    gap: 6,
+    gap: 2,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
@@ -418,7 +510,7 @@ const styles = StyleSheet.create({
     borderColor: C.border,
   },
   tabActive: { backgroundColor: C.primary, borderColor: C.primary },
-  tabText: { fontSize: 13, fontWeight: '700', color: C.muted },
+  tabText: { fontSize: 12, fontWeight: '700', color: C.muted },
   thumb: { width: 84, height: 84, borderRadius: R.sm },
   title: { fontSize: 15, fontWeight: '800', color: C.text },
   price: { fontSize: 14, fontWeight: '800', color: C.primary },

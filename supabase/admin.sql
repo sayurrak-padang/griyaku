@@ -120,7 +120,8 @@ grant select, update on public.profiles to authenticated;
 -- ============ JADIKAN AKUN ANDA ADMIN ============
 -- 1) Daftar/masuk dulu di aplikasi dengan email Anda.
 -- 2) Ganti email di bawah, hapus tanda "--" di depannya, lalu Run baris itu saja:
--- update public.profiles set role = 'admin' where email = 'email-anda@contoh.com';
+-- update public.profiles set role = 'admin'
+--   where id = (select id from auth.users where lower(email) = lower('email-anda@contoh.com'));
 --
 -- Catatan: trigger di atas mencegah non-admin mengubah peran dari aplikasi,
 -- sedangkan SQL Editor (tanpa login aplikasi) tetap bisa mengubahnya.

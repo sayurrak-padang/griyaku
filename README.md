@@ -34,8 +34,9 @@ Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan s
 4. Jika muncul error `permission denied for table` (kode 42501), jalankan juga `supabase/grants.sql`.
 4b. Untuk **chat & notifikasi**: buka lagi **SQL Editor → New query**, tempel isi `supabase/chat.sql`, lalu **Run**.
 4c. Untuk **panel admin**: jalankan `supabase/admin.sql` dengan cara yang sama. Lalu daftar/masuk di aplikasi, dan di SQL Editor jalankan
-    `update public.profiles set role = 'admin' where email = 'email-anda@contoh.com';`
+    `update public.profiles set role = 'admin' where id = (select id from auth.users where lower(email) = lower('email-anda@contoh.com'));`
     Tutup lalu buka lagi aplikasi: menu **Akun → Panel admin** muncul.
+4d. Untuk **ulasan & rating**: jalankan `supabase/reviews.sql` dengan cara yang sama. Pengguna bisa memberi 1-5 bintang + komentar di detail properti dan jasa (satu ulasan per orang, bisa diubah/dihapus). Pemilik iklan tidak bisa mengulas iklannya sendiri dan mendapat notifikasi saat ada ulasan baru. Admin menyembunyikan/menghapus ulasan di **Panel admin → Ulasan**.
 5. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
 6. Jalankan ulang `npx expo start`.
 

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ReviewsSection } from '@/components/Reviews';
 import { Button, Chip, Empty, Field, IconName } from '@/components/ui';
 import { C, R } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
@@ -97,6 +98,8 @@ export default function ServiceBooking() {
             ))}
           </View>
         </View>
+
+        <ReviewsSection targetType="service" targetId={s.id} style={styles.section} />
 
         <View style={styles.section}>
           <Text style={styles.h2}>1. Pilih paket</Text>

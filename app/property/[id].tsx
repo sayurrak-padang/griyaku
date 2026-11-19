@@ -6,6 +6,7 @@ import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, useWind
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Photo } from '@/components/Photo';
+import { ReviewsSection } from '@/components/Reviews';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PropertyMap } from '@/components/PropertyMap';
 import { priceText } from '@/components/PropertyCard';
@@ -187,6 +188,10 @@ export default function PropertyDetail() {
               onPress={() => openInMaps(p.lat!, p.lng!, p.title)}
             />
           </View>
+        ) : null}
+
+        {!p.status || p.status === 'aktif' ? (
+          <ReviewsSection targetType="property" targetId={p.id} canReview={!p.mine} style={styles.section} />
         ) : null}
 
         <View style={styles.section}>

@@ -13,6 +13,7 @@ const ICON: Record<string, [IconName, string]> = {
   pesanan: ['receipt', C.info],
   iklan: ['megaphone', '#D9831B'],
   info: ['information-circle', C.muted],
+  ulasan: ['star', '#E0A100'],
 };
 
 export default function Notifikasi() {

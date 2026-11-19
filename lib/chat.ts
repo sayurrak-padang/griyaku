@@ -27,7 +27,7 @@ export type Message = {
 
 export type AppNotification = {
   id: string;
-  kind: 'chat' | 'pesanan' | 'iklan' | 'info';
+  kind: 'chat' | 'pesanan' | 'iklan' | 'info' | 'ulasan';
   title: string;
   body: string;
   link?: string;
