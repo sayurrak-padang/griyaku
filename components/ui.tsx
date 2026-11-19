@@ -165,7 +165,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
     borderRadius: R.md,
-    backgroundColor: C.card,
+    backgroundColor: C.glassStrong,
     paddingHorizontal: 12,
   },
   input: { flex: 1, paddingVertical: 12, fontSize: 15, color: C.text },

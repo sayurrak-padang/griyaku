@@ -76,7 +76,7 @@ export function PhotoPicker({ value, onChange }: { value: string[]; onChange: (u
 
 const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '700', color: C.text, marginBottom: 8 },
-  thumb: { width: 96, height: 96, borderRadius: R.md, overflow: 'hidden', backgroundColor: C.bg },
+  thumb: { width: 96, height: 96, borderRadius: R.md, overflow: 'hidden', backgroundColor: C.card },
   add: {
     borderWidth: 1.5,
     borderStyle: 'dashed',

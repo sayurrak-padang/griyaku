@@ -168,12 +168,12 @@ function Meta({ icon, text }: { icon: IconName; text: string }) {
 }
 
 const styles = StyleSheet.create({
-  hero: { padding: 20, alignItems: 'flex-start', gap: 4 },
+  hero: { padding: 20, alignItems: 'flex-start', gap: 4, marginHorizontal: 12, marginTop: 8, borderRadius: R.xl, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
   heroIcon: { width: 60, height: 60, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
   heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
   heroSub: { color: 'rgba(255,255,255,0.9)', fontSize: 14 },
   heroMeta: { flexDirection: 'row', gap: 16, marginTop: 8 },
-  section: { backgroundColor: C.card, padding: 16, marginTop: 8 },
+  section: { backgroundColor: C.card, padding: 16, marginTop: 10, marginHorizontal: 12, borderRadius: R.xl, borderWidth: 1, borderColor: C.border },
   desc: { fontSize: 14, color: C.text, lineHeight: 21 },
   h2: { fontSize: 16, fontWeight: '800', color: C.text, marginBottom: 12 },
   pkg: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingTop: 12,
-    backgroundColor: C.card,
+    backgroundColor: 'rgba(255,255,255,0.88)',
     borderTopWidth: 1,
     borderColor: C.border,
   },

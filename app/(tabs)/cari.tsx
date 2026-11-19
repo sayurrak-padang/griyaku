@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { PropertyCard } from '@/components/PropertyCard';
 import { PropertyMap } from '@/components/PropertyMap';
 import { Button, Chip, Empty, Field } from '@/components/ui';
-import { C, R } from '@/constants/theme';
+import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { CITIES, ListingKind, PROPERTY_TYPES, PropertyType } from '@/data/properties';
 import { formatThousands, parseNumber } from '@/lib/format';
@@ -175,7 +175,7 @@ export default function Search() {
         keyExtractor={(p) => p.id}
         refreshing={online ? loading : undefined}
         onRefresh={online ? refresh : undefined}
-        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 }}
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: TAB_BAR_SPACE }}
         ListHeaderComponent={
           <Text style={styles.count}>
             {results.length} properti ditemukan{filters.city ? ` di ${filters.city}` : ''}
@@ -222,7 +222,7 @@ export default function Search() {
 
       {/* Filter */}
       <Modal visible={showFilter} animationType="slide" onRequestClose={() => setShowFilter(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: C.card }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: C.surface }}>
           <View style={styles.filterHead}>
             <Pressable onPress={() => setShowFilter(false)} hitSlop={8}>
               <Ionicons name="close" size={24} color={C.text} />
@@ -302,7 +302,7 @@ export default function Search() {
 }
 
 const styles = StyleSheet.create({
-  top: { backgroundColor: C.card, paddingTop: 8, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderColor: C.border },
+  top: { backgroundColor: 'rgba(255,255,255,0.45)', paddingTop: 8, paddingBottom: 12, gap: 10, borderBottomWidth: 1, borderColor: C.border },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -310,13 +310,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     paddingHorizontal: 12,
     borderRadius: R.md,
-    backgroundColor: C.bg,
+    backgroundColor: C.glassStrong,
     borderWidth: 1,
     borderColor: C.border,
   },
   searchInput: { flex: 1, paddingVertical: 11, fontSize: 15, color: C.text },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 },
-  segment: { flexDirection: 'row', backgroundColor: C.bg, borderRadius: 999, padding: 3, flex: 1 },
+  segment: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.5)', borderRadius: 999, padding: 3, flex: 1 },
   seg: { flex: 1, paddingVertical: 7, borderRadius: 999, alignItems: 'center' },
   segOn: { backgroundColor: C.primary },
   segText: { fontSize: 13, fontWeight: '600', color: C.muted },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   },
   mapCountText: { fontSize: 12, fontWeight: '600', color: C.text },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: C.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36 },
+  sheet: { backgroundColor: C.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 36 },
   sheetTitle: { fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 6 },
   option: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14 },
   optionText: { fontSize: 15, color: C.text },

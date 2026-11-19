@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { GlassBackground } from '@/components/GlassBackground';
 import { C } from '@/constants/theme';
 import { AppProvider } from '@/context/AppContext';
 
@@ -17,7 +18,7 @@ SplashScreen.preventAutoHideAsync();
 
 const theme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, primary: C.primary, background: C.bg, card: C.card, text: C.text, border: C.border },
+  colors: { ...DefaultTheme.colors, primary: C.primary, background: 'transparent', card: 'rgba(255,255,255,0.6)', text: C.text, border: 'transparent' },
 };
 
 export default function RootLayout() {
@@ -33,8 +34,11 @@ export default function RootLayout() {
     <AppProvider>
       <ThemeProvider value={theme}>
         <StatusBar style="dark" />
+        <GlassBackground />
         <Stack
           screenOptions={{
+            contentStyle: { backgroundColor: 'transparent' },
+            headerStyle: { backgroundColor: 'rgba(255,255,255,0.55)' },
             headerTintColor: C.text,
             headerTitleStyle: { fontWeight: '700' },
             headerBackButtonDisplayMode: 'minimal',
@@ -47,7 +51,10 @@ export default function RootLayout() {
           <Stack.Screen name="favorit" options={{ title: 'Favorit Saya' }} />
           <Stack.Screen name="iklan-saya" options={{ title: 'Iklan Saya' }} />
           <Stack.Screen name="pesanan" options={{ title: 'Pesanan Jasa' }} />
-          <Stack.Screen name="login" options={{ title: 'Masuk', presentation: 'modal' }} />
+          <Stack.Screen
+            name="login"
+            options={{ title: 'Masuk', presentation: 'modal', contentStyle: { backgroundColor: C.surface }, headerStyle: { backgroundColor: C.surface } }}
+          />
         </Stack>
       </ThemeProvider>
     </AppProvider>

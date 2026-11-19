@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PropertyMiniCard } from '@/components/PropertyCard';
 import { IconName, SectionHeader } from '@/components/ui';
-import { C, R } from '@/constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { C, glassShadow, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { CITIES, PROPERTY_TYPES } from '@/data/properties';
 import { SERVICES } from '@/data/services';
@@ -25,16 +27,16 @@ export default function Home() {
   const kost = allProperties.filter((p) => p.type === 'kost' || p.type === 'kontrakan').slice(0, 6);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: 32 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: TAB_BAR_SPACE }}>
       <View style={[styles.hero, { paddingTop: insets.top + 12 }]}>
         <View style={styles.brandRow}>
           <View style={styles.logo}>
-            <Ionicons name="home" size={18} color={C.primary} />
+            <Ionicons name="home" size={18} color="#fff" />
           </View>
           <Text style={styles.brand}>Griyaku</Text>
           <View style={{ flex: 1 }} />
           <Pressable onPress={() => router.push('/favorit')} hitSlop={8}>
-            <Ionicons name="heart-outline" size={24} color="#fff" />
+            <Ionicons name="heart-outline" size={24} color={C.text} />
           </Pressable>
         </View>
         <Text style={styles.greet}>Halo{user ? `, ${user.name.split(' ')[0]}` : ''} 👋</Text>
@@ -59,7 +61,8 @@ export default function Home() {
         ))}
       </View>
 
-      <Pressable style={styles.banner} onPress={() => router.push('/kpr')}>
+      <Pressable style={styles.bannerWrap} onPress={() => router.push('/kpr')}>
+        <LinearGradient colors={['rgba(14,143,126,0.92)', 'rgba(59,111,217,0.85)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.banner}>
         <View style={{ flex: 1, gap: 6 }}>
           <Text style={styles.bannerTitle}>Berapa cicilan rumah impianmu?</Text>
           <Text style={styles.bannerText}>Hitung simulasi KPR dalam 1 menit, gratis.</Text>
@@ -69,6 +72,7 @@ export default function Home() {
           </View>
         </View>
         <Ionicons name="calculator" size={64} color="rgba(255,255,255,0.35)" />
+        </LinearGradient>
       </Pressable>
 
       <SectionHeader title="Jenis Properti" />
@@ -146,27 +150,24 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    backgroundColor: C.primary,
-    paddingHorizontal: 16,
-    paddingBottom: 56,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
+  hero: { paddingHorizontal: 16, paddingBottom: 8 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logo: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
-  brand: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: 0.3 },
-  greet: { color: 'rgba(255,255,255,0.85)', marginTop: 18, fontSize: 14 },
-  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 4, lineHeight: 28 },
+  logo: { width: 30, height: 30, borderRadius: 9, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
+  brand: { color: C.text, fontSize: 20, fontWeight: '800', letterSpacing: 0.3 },
+  greet: { color: C.muted, marginTop: 18, fontSize: 14 },
+  heroTitle: { color: C.text, fontSize: 22, fontWeight: '800', marginTop: 4, lineHeight: 28 },
   search: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#fff',
-    borderRadius: R.md,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
+    backgroundColor: C.glassStrong,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: R.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     marginTop: 16,
+    ...glassShadow,
   },
   searchText: { color: C.muted, fontSize: 14 },
   quickGrid: {
@@ -174,29 +175,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginHorizontal: 16,
-    marginTop: -40,
+    marginTop: 16,
     backgroundColor: C.card,
-    borderRadius: R.lg,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderRadius: R.xl,
     padding: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    ...glassShadow,
   },
   quick: { flexBasis: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 10, borderRadius: R.md },
   quickIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   quickLabel: { fontSize: 13, fontWeight: '700', color: C.text },
   quickSub: { fontSize: 11, color: C.muted },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    margin: 16,
-    marginBottom: 0,
-    padding: 18,
-    borderRadius: R.lg,
-    backgroundColor: C.primaryDark,
-  },
+  bannerWrap: { margin: 16, marginBottom: 0, borderRadius: R.xl, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', ...glassShadow },
+  banner: { flexDirection: 'row', alignItems: 'center', padding: 18 },
   bannerTitle: { color: '#fff', fontSize: 17, fontWeight: '800' },
   bannerText: { color: 'rgba(255,255,255,0.85)', fontSize: 13 },
   bannerBtn: {
@@ -214,9 +206,9 @@ const styles = StyleSheet.create({
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8 },
   typeItem: { width: '25%', alignItems: 'center', gap: 6, marginBottom: 14 },
   typeIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 58,
+    height: 58,
+    borderRadius: 20,
     backgroundColor: C.card,
     borderWidth: 1,
     borderColor: C.border,
@@ -225,7 +217,7 @@ const styles = StyleSheet.create({
   },
   typeLabel: { fontSize: 12, color: C.text, fontWeight: '600' },
   hList: { paddingHorizontal: 16, gap: 12 },
-  svc: { width: 120, backgroundColor: C.card, borderRadius: R.lg, padding: 12, gap: 6, borderWidth: 1, borderColor: C.border },
+  svc: { width: 120, backgroundColor: C.card, borderRadius: R.xl, padding: 12, gap: 6, borderWidth: 1, borderColor: C.border },
   svcIcon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   svcName: { fontSize: 13, fontWeight: '700', color: C.text, minHeight: 34 },
   svcPrice: { fontSize: 11, color: C.primary, fontWeight: '600' },
@@ -249,8 +241,10 @@ const styles = StyleSheet.create({
     margin: 16,
     marginTop: 24,
     padding: 16,
-    borderRadius: R.lg,
-    backgroundColor: C.accentSoft,
+    borderRadius: R.xl,
+    backgroundColor: C.card,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   adTitle: { fontSize: 14, fontWeight: '800', color: C.text },
   adText: { fontSize: 12, color: C.muted, marginTop: 2 },

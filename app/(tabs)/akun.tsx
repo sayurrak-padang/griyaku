@@ -4,7 +4,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, IconName } from '@/components/ui';
-import { C, R } from '@/constants/theme';
+import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function Akun() {
@@ -20,7 +20,7 @@ export default function Akun() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_SPACE }}>
         <Text style={styles.h1}>Akun</Text>
 
         <View style={styles.profile}>

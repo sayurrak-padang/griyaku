@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Chip, Empty, IconName } from '@/components/ui';
-import { C, R } from '@/constants/theme';
+import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 import { SERVICE_CATEGORIES, SERVICES } from '@/data/services';
 import { rupiahShort } from '@/lib/format';
@@ -28,7 +28,7 @@ export default function Jasa() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: C.bg }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ paddingBottom: TAB_BAR_SPACE }} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <Text style={styles.h1}>Jasa Rumah Tangga</Text>
           <Text style={styles.sub}>Tenaga terlatih, harga jelas di depan.</Text>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingHorizontal: 12,
     borderRadius: R.md,
-    backgroundColor: C.card,
+    backgroundColor: C.glassStrong,
     borderWidth: 1,
     borderColor: C.border,
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
     backgroundColor: C.card,
-    borderRadius: R.lg,
+    borderRadius: R.xl,
     padding: 14,
     gap: 6,
     borderWidth: 1,

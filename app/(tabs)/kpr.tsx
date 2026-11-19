@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button, Card, Chip, Field } from '@/components/ui';
-import { C, R } from '@/constants/theme';
+import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { formatThousands, monthlyInstallment, parseNumber, rupiah } from '@/lib/format';
 
 const TENORS = [5, 10, 15, 20, 25, 30];
@@ -35,7 +35,7 @@ export default function Kpr() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: C.bg }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_SPACE }} keyboardShouldPersistTaps="handled">
           <Text style={styles.h1}>Simulasi KPR</Text>
           <Text style={styles.sub}>Perkirakan cicilan bulanan rumah impianmu.</Text>
 
@@ -128,7 +128,7 @@ function Row({ label, value, bold }: { label: string; value: string; bold?: bool
 const styles = StyleSheet.create({
   h1: { fontSize: 24, fontWeight: '800', color: C.text, marginTop: 8 },
   sub: { fontSize: 14, color: C.muted, marginTop: 4 },
-  result: { marginTop: 16, backgroundColor: C.primary, borderRadius: R.lg, padding: 20 },
+  result: { marginTop: 16, backgroundColor: 'rgba(14,143,126,0.88)', borderRadius: R.xl, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
   resultLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 13 },
   resultValue: { color: '#fff', fontSize: 30, fontWeight: '800', marginTop: 4 },
   resultNote: { color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 4 },
