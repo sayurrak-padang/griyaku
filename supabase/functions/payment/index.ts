@@ -60,7 +60,8 @@ Deno.serve(async (req) => {
     return json({ error: 'Permintaan tidak valid.' }, 400);
   }
   const { data: booking, error } = await admin.from('bookings').select('*').eq('id', body.booking_id ?? '').maybeSingle();
-  if (error || !booking) return json({ error: 'Pesanan tidak ditemukan.' }, 404);
+  if (error) return json({ error: `Database menolak (${error.code ?? ''} ${error.message}). Jalankan supabase/payments.sql terbaru.` }, 500);
+  if (!booking) return json({ error: 'Pesanan tidak ditemukan.' }, 404);
   if (booking.user_id !== auth.user.id) return json({ error: 'Ini bukan pesanan Anda.' }, 403);
 
   // ---- cek status ----

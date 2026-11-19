@@ -116,4 +116,9 @@ create trigger bookings_after_payment after update on public.bookings
 
 -- ============ IZIN TABEL ============
 grant select on public.service_prices to anon, authenticated;
+-- Edge Function memakai peran service_role; proyek baru juga tidak otomatis memberinya izin tabel
+grant usage on schema public to service_role;
+grant select, update on public.bookings to service_role;
+grant select on public.service_prices to service_role;
+grant insert on public.notifications to service_role;
 grant insert, update, delete on public.service_prices to authenticated;

@@ -59,7 +59,11 @@ Deno.serve(async (req) => {
 
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const bookingId = orderId.slice(0, 36);
-  const { data: b } = await admin.from('bookings').select('id, payment_status, payment_order_id, paid_at').eq('id', bookingId).maybeSingle();
+  const { data: b, error } = await admin.from('bookings').select('id, payment_status, payment_order_id, paid_at').eq('id', bookingId).maybeSingle();
+  if (error) {
+    console.error('Gagal membaca pesanan', error);
+    return new Response('db error', { status: 500 }); // Midtrans akan mencoba lagi
+  }
   if (!b) return new Response('not found');
 
   // Pembayaran lunas dari order mana pun untuk pesanan ini diterima.
