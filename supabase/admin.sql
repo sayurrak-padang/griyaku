@@ -12,21 +12,21 @@ alter table public.profiles add constraint profiles_role_check check (role in ('
 update public.profiles p set email = u.email from auth.users u where u.id = p.id and p.email is null;
 
 create or replace function public.is_admin()
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public as $fn$
   select exists (select 1 from public.profiles where id = auth.uid() and role = 'admin');
-$$;
+$fn$;
 
 create or replace function public.is_banned()
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public as $fn$
   select exists (select 1 from public.profiles where id = auth.uid() and banned);
-$$;
+$fn$;
 
 grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.is_banned() to authenticated;
 
 -- Pengguna biasa tidak bisa mengubah peran/blokir dirinya sendiri; email selalu dari akun login
 create or replace function public.profiles_guard()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as $fn$
 begin
   if tg_op = 'INSERT' then
     new.role := 'user';
@@ -38,7 +38,7 @@ begin
   end if;
   select email into new.email from auth.users where id = new.id;
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists profiles_guard on public.profiles;
 create trigger profiles_guard before insert or update on public.profiles
@@ -81,7 +81,7 @@ create policy "iklan: admin kelola semua" on public.properties
 
 -- Beri tahu pemilik saat iklan disetujui / ditolak
 create or replace function public.on_property_status()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as $fn$
 begin
   if new.status is distinct from old.status and new.owner_id is not null then
     if new.status = 'aktif' then
@@ -94,7 +94,7 @@ begin
     end if;
   end if;
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists properties_after_status on public.properties;
 create trigger properties_after_status after update on public.properties

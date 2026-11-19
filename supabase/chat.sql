@@ -48,12 +48,12 @@ create index if not exists messages_conv_idx on public.messages (conversation_id
 alter table public.messages enable row level security;
 
 create or replace function public.is_participant(conv uuid)
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public as $fn$
   select exists (
     select 1 from public.conversations c
     where c.id = conv and auth.uid() in (c.seeker_id, c.owner_id)
   );
-$$;
+$fn$;
 
 create policy "pesan: peserta bisa membaca" on public.messages
   for select using (public.is_participant(conversation_id));
@@ -88,7 +88,7 @@ create policy "notif: hapus milik sendiri" on public.notifications
 -- ============ TRIGGER ============
 -- Pesan baru: perbarui ringkasan percakapan + buat notifikasi untuk penerima
 create or replace function public.on_new_message()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as $fn$
 declare
   c public.conversations;
   receiver uuid;
@@ -104,7 +104,7 @@ begin
   values (receiver, 'chat', coalesce(nullif(sender_name, ''), 'Pesan baru') || ' · ' || c.property_title,
           left(new.body, 140), '/chat/' || c.id);
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists messages_after_insert on public.messages;
 create trigger messages_after_insert after insert on public.messages
@@ -112,14 +112,14 @@ create trigger messages_after_insert after insert on public.messages
 
 -- Pesanan jasa baru: notifikasi konfirmasi untuk pemesan
 create or replace function public.on_new_booking()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as $fn$
 begin
   insert into public.notifications (user_id, kind, title, body, link)
   values (new.user_id, 'pesanan', 'Pesanan ' || new.service_name || ' diterima',
           'Jadwal ' || to_char(new.date, 'DD-MM-YYYY') || ' pukul ' || new.time || '. Kami akan menghubungi Anda untuk konfirmasi.',
           '/pesanan');
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists bookings_after_insert on public.bookings;
 create trigger bookings_after_insert after insert on public.bookings
@@ -127,7 +127,7 @@ create trigger bookings_after_insert after insert on public.bookings
 
 -- Status pesanan berubah (diubah admin di dashboard): beri tahu pemesan
 create or replace function public.on_booking_status()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as $fn$
 begin
   if new.status is distinct from old.status then
     insert into public.notifications (user_id, kind, title, body, link)
@@ -135,19 +135,19 @@ begin
             'Jadwal ' || to_char(new.date, 'DD-MM-YYYY') || ' pukul ' || new.time, '/pesanan');
   end if;
   return new;
-end $$;
+end $fn$;
 
 drop trigger if exists bookings_after_update on public.bookings;
 create trigger bookings_after_update after update on public.bookings
   for each row execute function public.on_booking_status();
 
 -- ============ REALTIME ============
-do $$
+do $fn$
 begin
   begin alter publication supabase_realtime add table public.messages; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.conversations; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.notifications; exception when duplicate_object then null; end;
-end $$;
+end $fn$;
 
 -- ============ IZIN TABEL ============
 grant select, insert on public.conversations to authenticated;

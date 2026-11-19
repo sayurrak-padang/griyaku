@@ -14,7 +14,7 @@ grant select, insert, delete on public.favorites to authenticated;
 grant select, insert on public.bookings to authenticated;
 
 -- Chat & notifikasi (jika chat.sql sudah dijalankan)
-do $$
+do $fn$
 begin
   if to_regclass('public.conversations') is not null then
     grant select, insert on public.conversations to authenticated;
@@ -22,4 +22,4 @@ begin
     grant select, update, delete on public.notifications to authenticated;
     grant execute on function public.is_participant(uuid) to authenticated;
   end if;
-end $$;
+end $fn$;
