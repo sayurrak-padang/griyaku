@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { ComponentRef, useMemo, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -34,6 +34,7 @@ export default function ServiceBooking() {
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
 
   if (!s) return <Empty icon="alert-circle-outline" title="Layanan tidak ditemukan" text="Silakan pilih layanan lain." />;
 
@@ -42,6 +43,11 @@ export default function ServiceBooking() {
   const valid = address.trim().length >= 8;
 
   const submit = async () => {
+    if (!valid) {
+      Alert.alert('Alamat belum diisi', 'Isi alamat lengkap (minimal 8 huruf) di bagian 3. Alamat agar petugas tahu lokasi Anda.');
+      scrollRef.current?.scrollToEnd({ animated: true });
+      return;
+    }
     if (!user) {
       Alert.alert('Masuk dulu', 'Silakan masuk agar petugas bisa menghubungi Anda.', [
         { text: 'Nanti', style: 'cancel' },
@@ -95,7 +101,7 @@ export default function ServiceBooking() {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: C.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
       <Stack.Screen options={{ title: s.name }} />
-      <ScrollView contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
         <View style={[styles.hero, { backgroundColor: s.color }]}>
           <View style={styles.heroIcon}>
             <Ionicons name={s.icon as IconName} size={34} color={s.color} />
@@ -165,6 +171,7 @@ export default function ServiceBooking() {
             value={address}
             onChangeText={setAddress}
             placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kota"
+            hint={valid ? undefined : 'Wajib diisi agar bisa memesan.'}
             multiline
           />
           <Field label="Catatan untuk petugas (opsional)" value={note} onChangeText={setNote} placeholder="Misal: ada 2 unit AC di lantai 2" />
@@ -176,7 +183,7 @@ export default function ServiceBooking() {
           <Text style={{ fontSize: 12, color: C.muted }}>Total{chosen.price ? ' (termasuk biaya layanan)' : ''}</Text>
           <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>{total ? rupiah(total) : 'Gratis'}</Text>
         </View>
-        <Button title={saving ? 'Mengirim...' : 'Pesan sekarang'} onPress={submit} disabled={!valid || saving} style={{ paddingHorizontal: 24 }} />
+        <Button title={saving ? 'Mengirim...' : 'Pesan sekarang'} onPress={submit} disabled={saving} style={{ paddingHorizontal: 24 }} />
       </View>
     </KeyboardAvoidingView>
   );
