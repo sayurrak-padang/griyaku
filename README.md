@@ -33,12 +33,16 @@ Tanpa Supabase, aplikasi tetap jalan dalam **mode uji coba**: data contoh, dan s
 3. Buka **Authentication → Sign In / Providers → Email**, matikan **Confirm email**, lalu **Save**. (Tanpa SMTP sendiri, email Supabase sangat dibatasi; dengan opsi ini pendaftaran tidak butuh email.)
 4. Jika muncul error `permission denied for table` (kode 42501), jalankan juga `supabase/grants.sql`.
 4b. Untuk **chat & notifikasi**: buka lagi **SQL Editor → New query**, tempel isi `supabase/chat.sql`, lalu **Run**.
+4c. Untuk **panel admin**: jalankan `supabase/admin.sql` dengan cara yang sama. Lalu daftar/masuk di aplikasi, dan di SQL Editor jalankan
+    `update public.profiles set role = 'admin' where email = 'email-anda@contoh.com';`
+    Tutup lalu buka lagi aplikasi: menu **Akun → Panel admin** muncul.
 5. Salin `.env.example` menjadi `.env`, isi `EXPO_PUBLIC_SUPABASE_URL` dan `EXPO_PUBLIC_SUPABASE_ANON_KEY` dari **Project Settings → API**. Kunci *anon* memang aman berada di aplikasi karena data dilindungi aturan RLS di `schema.sql`. Jangan pernah memakai kunci *service_role* di aplikasi.
 6. Jalankan ulang `npx expo start`.
 
 Catatan:
 - Untuk rilis, sebaiknya pasang SMTP sendiri (mis. Resend) di **Authentication → Emails → SMTP Settings**, lalu aktifkan lagi **Confirm email** dan fitur lupa kata sandi. Fungsi login kode email (OTP) juga sudah ada di `lib/api.ts`.
-- Lencana **Terverifikasi** hanya bisa diubah admin lewat **Table Editor → properties → verified**.
+- Setelah `admin.sql` dijalankan, iklan baru berstatus **Menunggu persetujuan** dan baru tampil setelah admin menyetujuinya di **Panel admin** (pemilik mendapat notifikasi disetujui/ditolak). Iklan lama tetap tayang.
+- Panel admin: setujui/tolak iklan (dengan alasan), beri lencana **Terverifikasi**, hapus iklan, ubah status pesanan jasa (pemesan diberi notifikasi), blokir pengguna (tidak bisa memasang iklan & chat), dan jadikan pengguna lain admin.
 - Data contoh tetap tampil bersama iklan asli. Matikan dengan `SHOW_SAMPLE_DATA = false` di `context/AppContext.tsx`.
 - Peta di Android memakai Google Maps. Di Expo Go langsung jalan; untuk build rilis Play Store perlu Google Maps API key di `app.json` (`android.config.googleMaps.apiKey`).
 

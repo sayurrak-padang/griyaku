@@ -49,7 +49,14 @@ type Ctx = {
   favorites: string[];
   myListings: Property[];
   bookings: Booking[];
+  /** Iklan yang tayang untuk publik (status aktif) */
   allProperties: Property[];
+  /** Cari iklan berdasarkan id, termasuk iklan sendiri yang belum disetujui */
+  getProperty: (id: string) => Property | undefined;
+  /** Akun ini admin (kolom profiles.role = 'admin') */
+  isAdmin: boolean;
+  /** Akun ini diblokir admin */
+  banned: boolean;
   refresh: () => Promise<void>;
   /** Mode lokal saja (tanpa Supabase) */
   login: (u: User) => void;
@@ -83,7 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Data dari Supabase
   const [authId, setAuthId] = useState<string | null>(null);
   const [authEmail, setAuthEmail] = useState<string | undefined>();
-  const [profile, setProfile] = useState<{ name: string; phone: string } | null>(null);
+  const [profile, setProfile] = useState<api.Profile | null>(null);
   const [remote, setRemote] = useState<Property[]>([]);
   const [remoteFavs, setRemoteFavs] = useState<string[]>([]);
   const [remoteBookings, setRemoteBookings] = useState<Booking[]>([]);
@@ -206,7 +213,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const uid = authIdRef.current;
     if (!uid) throw new Error('Belum masuk');
     await api.saveProfile(uid, name, phone);
-    setProfile({ name, phone });
+    setProfile((p) => ({ ...p, name, phone }));
   }, []);
 
   const logout = useCallback(async () => {
@@ -290,6 +297,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const bookings = isOnline ? remoteBookings : local.bookings;
     const base = isOnline ? remote : local.myListings;
     const notifications = isOnline ? remoteNotifs : local.notifications ?? [];
+    const everything = [...base, ...(SHOW_SAMPLE_DATA ? PROPERTIES : [])];
+    const isPublic = (p: Property) => !p.status || p.status === 'aktif';
     return {
       ready,
       online: isOnline,
@@ -298,7 +307,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       favorites,
       myListings,
       bookings,
-      allProperties: [...base, ...(SHOW_SAMPLE_DATA ? PROPERTIES : [])],
+      allProperties: everything.filter(isPublic),
+      getProperty: (id) => everything.find((p) => p.id === id),
+      isAdmin: isOnline && !!authId && profile?.role === 'admin',
+      banned: isOnline && !!authId && !!profile?.banned,
       refresh,
       login,
       saveProfile,

@@ -13,7 +13,7 @@ import { formatThousands, parseNumber } from '@/lib/format';
 const num = (s: string) => (parseNumber(s) || undefined);
 
 export default function PasangIklan() {
-  const { user, online, addListing } = useApp();
+  const { user, online, addListing, banned } = useApp();
   const [listing, setListing] = useState<ListingKind>('jual');
   const [type, setType] = useState<PropertyType>('rumah');
   const [title, setTitle] = useState('');
@@ -61,6 +61,10 @@ export default function PasangIklan() {
   if (phone.replace(/\D/g, '').length < 9) errors.push('Nomor WhatsApp belum benar');
 
   const submit = async () => {
+    if (banned) {
+      Alert.alert('Akun diblokir', 'Akun Anda tidak bisa memasang iklan. Hubungi admin Griyaku bila ini keliru.');
+      return;
+    }
     if (online && !user) {
       Alert.alert('Masuk dulu', 'Silakan masuk agar iklan tersimpan di akun Anda.', [
         { text: 'Nanti', style: 'cancel' },
@@ -103,6 +107,12 @@ export default function PasangIklan() {
       setSaving(false);
     }
     const created = p;
+    if (created.status === 'menunggu') {
+      Alert.alert('Iklan terkirim', 'Iklan Anda akan tayang setelah disetujui admin. Kami akan mengabari lewat notifikasi.', [
+        { text: 'Lihat iklan saya', onPress: () => router.replace('/iklan-saya') },
+      ]);
+      return;
+    }
     Alert.alert('Iklan tayang!', 'Iklan Anda sudah muncul di hasil pencarian.', [
       { text: 'Lihat iklan', onPress: () => router.replace(`/property/${created.id}`) },
     ]);

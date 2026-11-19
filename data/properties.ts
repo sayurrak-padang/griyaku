@@ -35,6 +35,9 @@ export type Property = {
   lat?: number;
   lng?: number;
   mine?: boolean;
+  /** Hanya untuk iklan dari database. Kosong = aktif (data contoh). */
+  status?: 'menunggu' | 'aktif' | 'ditolak' | 'terjual' | 'nonaktif';
+  rejectReason?: string;
 };
 
 export const PROPERTY_TYPES: { key: PropertyType; label: string; icon: string }[] = [

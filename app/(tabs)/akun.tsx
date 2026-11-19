@@ -8,7 +8,7 @@ import { C, R, TAB_BAR_SPACE } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function Akun() {
-  const { user, online, logout, favorites, myListings, bookings, unreadChats, unreadNotifications } = useApp();
+  const { user, online, logout, favorites, myListings, bookings, unreadChats, unreadNotifications, isAdmin } = useApp();
 
   const menu: { icon: IconName; label: string; badge?: number; href: Href }[] = [
     { icon: 'chatbubbles-outline', label: 'Chat', badge: unreadChats, href: '/chat' },
@@ -18,6 +18,7 @@ export default function Akun() {
     { icon: 'receipt-outline', label: 'Pesanan jasa', badge: bookings.length, href: '/pesanan' },
     { icon: 'add-circle-outline', label: 'Pasang iklan baru', href: '/pasang-iklan' },
     { icon: 'calculator-outline', label: 'Simulasi KPR', href: '/kpr' },
+    ...(isAdmin ? [{ icon: 'shield-checkmark-outline' as IconName, label: 'Panel admin', href: '/admin' as Href }] : []),
   ];
 
   return (

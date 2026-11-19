@@ -7,8 +7,8 @@ import { C } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function Favorit() {
-  const { favorites, allProperties } = useApp();
-  const list = favorites.map((id) => allProperties.find((p) => p.id === id)).filter((p) => !!p);
+  const { favorites, getProperty } = useApp();
+  const list = favorites.map((id) => getProperty(id)).filter((p) => !!p);
   return (
     <FlatList
       style={{ backgroundColor: C.bg }}

@@ -58,6 +58,7 @@ export default function RootLayout() {
           <Stack.Screen name="chat/index" options={{ title: 'Chat' }} />
           <Stack.Screen name="chat/[id]" options={{ title: 'Chat' }} />
           <Stack.Screen name="notifikasi" options={{ title: 'Notifikasi' }} />
+          <Stack.Screen name="admin/index" options={{ title: 'Panel Admin' }} />
           <Stack.Screen
             name="login"
             options={{ title: 'Masuk', presentation: 'modal', contentStyle: { backgroundColor: C.surface }, headerStyle: { backgroundColor: C.surface } }}

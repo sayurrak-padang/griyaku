@@ -6,6 +6,7 @@ import { Alert, Linking, Pressable, ScrollView, Share, StyleSheet, Text, useWind
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Photo } from '@/components/Photo';
+import { StatusBadge } from '@/components/StatusBadge';
 import { PropertyMap } from '@/components/PropertyMap';
 import { priceText } from '@/components/PropertyCard';
 import { Button, Empty, IconName } from '@/components/ui';
@@ -18,12 +19,12 @@ import { openInMaps } from '@/lib/geo';
 
 export default function PropertyDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { allProperties, isFavorite, toggleFavorite, user, online } = useApp();
+  const { getProperty, isFavorite, toggleFavorite, user, online } = useApp();
   const [opening, setOpening] = useState(false);
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [page, setPage] = useState(0);
-  const p = allProperties.find((x) => x.id === id);
+  const p = getProperty(id);
 
   if (!p) {
     return <Empty icon="alert-circle-outline" title="Properti tidak ditemukan" text="Iklan ini mungkin sudah dihapus." />;
@@ -112,6 +113,7 @@ export default function PropertyDetail() {
           </View>
           <Text style={styles.price}>{priceText(p)}</Text>
           {p.period ? null : <Text style={styles.exact}>{rupiah(p.price)}</Text>}
+          {p.status && p.status !== 'aktif' ? <StatusBadge status={p.status} reason={p.rejectReason} /> : null}
           <Text style={styles.title}>{p.title}</Text>
           <View style={styles.loc}>
             <Ionicons name="location" size={15} color={C.primary} />

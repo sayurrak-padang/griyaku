@@ -2,12 +2,13 @@ import { router } from 'expo-router';
 import { Alert, FlatList, View } from 'react-native';
 
 import { PropertyCard } from '@/components/PropertyCard';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Button, Empty } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { useApp } from '@/context/AppContext';
 
 export default function IklanSaya() {
-  const { myListings, removeListing } = useApp();
+  const { myListings, removeListing, online } = useApp();
   return (
     <FlatList
       style={{ backgroundColor: C.bg }}
@@ -19,6 +20,7 @@ export default function IklanSaya() {
       }
       renderItem={({ item }) => (
         <View style={{ gap: 8 }}>
+          {online ? <StatusBadge status={item.status} reason={item.rejectReason} /> : null}
           <PropertyCard p={item} />
           <Button
             title="Hapus iklan"

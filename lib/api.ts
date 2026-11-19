@@ -5,7 +5,7 @@ import type { Booking } from '@/context/AppContext';
 
 const BUCKET = 'property-photos';
 
-type PropertyRow = {
+export type PropertyRow = {
   id: string;
   owner_id: string | null;
   title: string;
@@ -32,6 +32,8 @@ type PropertyRow = {
   lng: number | null;
   verified: boolean;
   is_new: boolean;
+  status: NonNullable<Property['status']>;
+  reject_reason: string | null;
   created_at: string;
 };
 
@@ -64,10 +66,12 @@ export function rowToProperty(r: PropertyRow, myId?: string): Property {
     isNew: r.is_new,
     postedAt: r.created_at.slice(0, 10),
     mine: !!myId && r.owner_id === myId,
+    status: r.status,
+    rejectReason: u(r.reject_reason),
   };
 }
 
-function need() {
+export function need() {
   if (!supabase) throw new Error('Supabase belum dikonfigurasi');
   return supabase;
 }
@@ -197,9 +201,14 @@ export async function createBooking(userId: string, b: Omit<Booking, 'id' | 'cre
   };
 }
 
-export async function fetchProfile(userId: string) {
+export type Profile = { name: string; phone: string; role?: 'user' | 'admin'; banned?: boolean };
+
+export async function fetchProfile(userId: string): Promise<Profile | null> {
+  // kolom role/banned ada setelah admin.sql dijalankan; jika belum, ambil kolom dasar saja
+  const full = await need().from('profiles').select('name, phone, role, banned').eq('id', userId).maybeSingle();
+  if (!full.error) return full.data as Profile | null;
   const { data } = await need().from('profiles').select('name, phone').eq('id', userId).maybeSingle();
-  return data as { name: string; phone: string } | null;
+  return data as Profile | null;
 }
 
 export async function saveProfile(userId: string, name: string, phone: string) {
